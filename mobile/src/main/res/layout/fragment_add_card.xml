@@ -14,7 +14,7 @@
         android:text="@string/add_card_description"
         android:gravity="center"
         android:textSize="@dimen/abc_text_size_headline_material"
-        android:layout_marginBottom="8dp"/>
+        android:layout_margin="8dp"/>
 
     <EditText
         android:id="@+id/card_name"
@@ -36,7 +36,7 @@
     <TextView android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/pick_color"
-        android:gravity="center"
+        android:gravity="left"
         android:textSize="@dimen/abc_text_size_medium_material"
         android:layout_marginTop="8dp"
         android:layout_marginLeft="8dp"
@@ -103,7 +103,7 @@
     <TextView android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/add_extras"
-        android:gravity="center"
+        android:gravity="left"
         android:textSize="@dimen/abc_text_size_medium_material"
         android:layout_marginTop="16dp"
         android:layout_marginLeft="8dp"
@@ -116,35 +116,45 @@
         android:orientation="vertical"
         android:animateLayoutChanges="true">
 
-        <include layout="@layout/category_layout"/>
+        <include layout="@layout/add_category_rate_sublayout"/>
 
-        <com.shamanland.fab.FloatingActionButton
-            android:id="@+id/fab"
+        <Button
+            android:id="@+id/add_another"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_action_add"
-            app:floatingActionButtonColor="@color/accent"
-            app:floatingActionButtonSize="mini"
-            android:layout_gravity="left"
-            android:layout_marginLeft="8dp"
-            android:layout_marginBottom="16dp"
-            />
+            android:layout_height="48dp"
+            style="?android:attr/borderlessButtonStyle"
+            android:textColor="@color/accent"
+            android:text="@string/add_another"/>
 
     </LinearLayout>
 
 
 
-
-
-    <Button
-        android:id="@+id/add_card"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        style="?android:attr/borderlessButtonStyle"
-        android:textColor="@color/accent"
-        android:layout_margin="8dp"
-        android:text="@string/add_card"
-        android:layout_marginBottom="8dp"/>
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="right"
+        android:layout_margin="8dp">
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            style="?android:attr/borderlessButtonStyle"
+            android:textColor="@color/dark_grey"
+            android:layout_marginRight="8dp"
+            android:text="@string/cancel"/>
+
+        <Button
+            android:id="@+id/add_card"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            style="?android:attr/borderlessButtonStyle"
+            android:textColor="@color/accent"
+            android:text="@string/add_card"/>
+
+    </LinearLayout>
 
 </LinearLayout>
 </ScrollView>

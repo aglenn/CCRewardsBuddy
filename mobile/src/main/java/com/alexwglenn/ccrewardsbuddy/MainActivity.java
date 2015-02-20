@@ -56,7 +56,7 @@ public class MainActivity extends ActionBarActivity
         switch (position) {
             case 0:
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                        .replace(R.id.container, RewardCategoryFragment.newInstance())
                         .commit();
                 break;
             case 1:

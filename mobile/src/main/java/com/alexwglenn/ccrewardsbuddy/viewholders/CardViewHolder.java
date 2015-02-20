@@ -1,7 +1,9 @@
-package com.alexwglenn.ccrewardsbuddy;
+package com.alexwglenn.ccrewardsbuddy.viewholders;
 
 import android.view.View;
 import android.widget.TextView;
+
+import com.alexwglenn.ccrewardsbuddy.R;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;

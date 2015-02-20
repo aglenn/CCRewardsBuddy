@@ -1,4 +1,4 @@
-package com.alexwglenn.ccrewardsbuddy;
+package com.alexwglenn.ccrewardsbuddy.model;
 
 /**
  * Created by aglenn on 2/19/15.

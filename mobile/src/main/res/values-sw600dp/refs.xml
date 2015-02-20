@@ -9,5 +9,15 @@
     -->
     <item name="fragment_card" type="layout">@layout/fragment_card_grid</item>
     <item name="card_item" type="layout">@layout/card_grid_item</item>
+    <item name="reward_category_item" type="layout">@layout/reward_category_grid_item</item>
+
+    <!--
+    Layout alias to replace the single-pane version of the layout with a
+    two-pane version on Large screens.
+
+    For more on layout aliases, see:
+    http://developer.android.com/training/multiscreen/screensizes.html#TaskUseAliasFilters
+    -->
+    <item name="fragment_reward_category" type="layout">@layout/fragment_reward_category_grid</item>
 
 </resources>

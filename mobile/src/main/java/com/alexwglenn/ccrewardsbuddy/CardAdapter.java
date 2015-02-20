@@ -6,6 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import com.alexwglenn.ccrewardsbuddy.model.Card;
+import com.alexwglenn.ccrewardsbuddy.viewholders.CardViewHolder;
+
 import java.util.ArrayList;
 
 /**

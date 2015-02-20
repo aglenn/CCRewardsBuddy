@@ -1,60 +1,62 @@
 package com.alexwglenn.ccrewardsbuddy;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.internal.widget.AdapterViewCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.ListAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 import com.alexwglenn.ccrewardsbuddy.model.Card;
 import com.alexwglenn.ccrewardsbuddy.model.CardsAddedEvent;
 import com.alexwglenn.ccrewardsbuddy.model.CardsDeletedEvent;
 import com.alexwglenn.ccrewardsbuddy.model.CardsUpdatedEvent;
+import com.alexwglenn.ccrewardsbuddy.model.CategoryRate;
+import com.alexwglenn.ccrewardsbuddy.model.RewardCategory;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.shamanland.fab.FloatingActionButton;
-import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class CardFragment extends Fragment implements AbsListView.OnItemClickListener, AdapterView.OnItemLongClickListener {
-
-    private ArrayList<Card> cards;
+public class RewardCategoryFragment extends Fragment implements AbsListView.OnItemClickListener {
 
     /**
      * The fragment's ListView/GridView.
      */
-    @InjectView(R.id.cardList)
+    @InjectView(R.id.rewardlist)
     public AbsListView mListView;
 
     @InjectView(R.id.fab)
     public FloatingActionButton fab;
 
+
     /**
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private CardAdapter mAdapter;
+    private RewardCategoryAdapter mAdapter;
 
-    public static CardFragment newInstance() {
-        CardFragment fragment = new CardFragment();
+    public static RewardCategoryFragment newInstance() {
+        RewardCategoryFragment fragment = new RewardCategoryFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
         return fragment;
@@ -64,7 +66,7 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public CardFragment() {
+    public RewardCategoryFragment() {
     }
 
     @Override
@@ -74,23 +76,21 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         if (getArguments() != null) {
         }
 
-        updateCards();
-
+        updateRewards();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_card, container, false);
-
-        ButterKnife.inject(this, view);
+        View view = inflater.inflate(R.layout.fragment_reward_category, container, false);
 
         // Set the adapter
-        mListView.setAdapter(mAdapter);
+        ButterKnife.inject(this,view);
+        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
-        mListView.setOnItemLongClickListener(this);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,8 +103,8 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
                     }
                     ft.addToBackStack(null);
 
-                    AddCardFragment addCardDialog = AddCardFragment.newInstance();
-                    addCardDialog.show(getChildFragmentManager(), AddCardFragment.class.getSimpleName());
+                    AddCategoryFragment addCategoryDialog = AddCategoryFragment.newInstance();
+                    addCategoryDialog.show(getChildFragmentManager(), AddCategoryFragment.class.getSimpleName());
                 }
             }
         });
@@ -134,46 +134,10 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         BusProvider.getInstance().register(this);
     }
 
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Toast.makeText(getActivity(), "Pressed Card " + position, Toast.LENGTH_SHORT).show();
-    }
 
-    @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setPositiveButton("Edit", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-                dialog.dismiss();
-            }
-        });
-
-        builder.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        builder.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                cards.remove(position);
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                Gson gson = new Gson();
-                Type listType = new TypeToken<ArrayList<Card>>() {}.getType();
-                preferences.edit().putString("Cards", gson.toJson(cards, listType)).commit();
-                BusProvider.getInstance().post(produceCardDeletedEvent());
-                dialog.dismiss();
-            }
-        });
-
-        builder.create().show();
-
-        return true;
     }
 
     /**
@@ -189,24 +153,20 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         }
     }
 
-    @Produce
-    public CardsDeletedEvent produceCardDeletedEvent() {
-        return new CardsDeletedEvent();
-    }
-
-    @Subscribe public void onCardsUpdated(CardsUpdatedEvent event) {
-        updateCards();
+    @Subscribe
+    public void onCardsUpdated(CardsUpdatedEvent event) {
+        updateRewards();
     }
 
     @Subscribe public void onCardsDeleted(CardsDeletedEvent event) {
-        updateCards();
+        updateRewards();
     }
 
     @Subscribe public void onCardsAdded(CardsAddedEvent event) {
-        updateCards();
+        updateRewards();
     }
 
-    private void updateCards() {
+    private void updateRewards() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 //        String cardsJson = preferences.getString("Cards", "[{\"name\":\"Chase Freedom\",\"basePercentage\":0.01,\"categoryRates\":[{\"Grocery Stores\":0.05},{\"Movie Theatres\":0.05}]},{\"name\":\"Capital One Quicksilver\",\"basePercentage\":0.015, \"categoryRates\":[]}]");
         String cardsJson = preferences.getString("Cards", "");
@@ -214,17 +174,75 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         Gson gson = new Gson();
 
         Type listType = new TypeToken<ArrayList<Card>>() {}.getType();
-        cards = gson.fromJson(cardsJson, listType);
+        List<Card> cards = gson.fromJson(cardsJson, listType);
         if (cards == null) {
             cards = new ArrayList<Card>();
         }
 
+        List<String> cats = new ArrayList<>();
+
+        cats.add("Home Improvement");
+        cats.add("Grocery Stores");
+        cats.add("Restaurants");
+        cats.add("Clothing");
+        cats.add("Pet Supplies");
+        cats.add("Online Shopping");
+        cats.add("Other");
+
+        for (Card c : cards) {
+            for (CategoryRate rate : c.categoryRates) {
+                cats.add(rate.categoryName);
+            }
+        }
+
+        List<String> uniqueCats = new ArrayList<>(new HashSet<String>(cats));
+        Collections.sort(uniqueCats);
+
+        Map<String,RewardCategory> rewardCats = new HashMap<>();
+        for (String categoryName : uniqueCats) {
+            for (Card card : cards) {
+
+                // check the base rate of the card first
+                if(rewardCats.get(categoryName) != null) {
+                    RewardCategory rCat = rewardCats.get(categoryName);
+                    if (card.basePercentage > rCat.bestRate) {
+                        rCat.bestCard = card;
+                        rCat.bestRate = card.basePercentage;
+                        rewardCats.put(categoryName, rCat);
+                    }
+                } else {
+                    RewardCategory rCat = new RewardCategory(categoryName, card.basePercentage, card);
+                    rewardCats.put(categoryName, rCat);
+                }
+
+                // Now check any rotating categories or special ones
+                for (CategoryRate rate : card.categoryRates) {
+                    if (rate.categoryName.equals(categoryName)) {
+                        if(rewardCats.get(categoryName) != null) {
+                            RewardCategory rCat = rewardCats.get(categoryName);
+                            if (rate.categoryPercentage > rCat.bestRate) {
+                                rCat.bestCard = card;
+                                rCat.bestRate = rate.categoryPercentage;
+                                rewardCats.put(categoryName, rCat);
+                            }
+                        } else {
+                            RewardCategory rCat = new RewardCategory(categoryName, rate.categoryPercentage, card);
+                            rewardCats.put(categoryName, rCat);
+                        }
+                    }
+                }
+            }
+        }
+
+        ArrayList<RewardCategory> rewardList = new ArrayList<>(rewardCats.values());
+
         if (mAdapter == null) {
-            mAdapter = new CardAdapter(cards, getActivity());
+            mAdapter = new RewardCategoryAdapter(rewardList, getActivity());
         } else {
-            mAdapter.setCards(cards);
+            mAdapter.setRewardCategories(rewardList);
             mAdapter.notifyDataSetChanged();
         }
     }
+
 
 }

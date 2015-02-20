@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="@string/add_category_description"
+              android:gravity="center"
+              android:textSize="@dimen/abc_text_size_headline_material"
+              android:layout_margin="8dp"/>
+
+    <EditText
+        android:id="@+id/categoryName"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_margin="8dp"
+        android:hint="@string/category_name"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="right"
+        android:layout_margin="8dp">
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            style="?android:attr/borderlessButtonStyle"
+            android:textColor="@color/dark_grey"
+            android:layout_marginRight="8dp"
+            android:text="@string/cancel"/>
+
+        <Button
+            android:id="@+id/add_category"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            style="?android:attr/borderlessButtonStyle"
+            android:textColor="@color/accent"
+            android:text="@string/add_category"/>
+
+        </LinearLayout>
+
+
+
+</LinearLayout>

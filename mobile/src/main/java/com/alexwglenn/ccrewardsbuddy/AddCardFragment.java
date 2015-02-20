@@ -2,27 +2,28 @@ package com.alexwglenn.ccrewardsbuddy;
 
 
 import android.content.SharedPreferences;
-import android.graphics.PorterDuff;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.alexwglenn.ccrewardsbuddy.model.Card;
+import com.alexwglenn.ccrewardsbuddy.model.CardsAddedEvent;
+import com.alexwglenn.ccrewardsbuddy.model.CategoryRate;
+import com.alexwglenn.ccrewardsbuddy.viewholders.AddCategoryRateViewHolder;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.shamanland.fab.FloatingActionButton;
-import com.squareup.otto.Bus;
 import com.squareup.otto.Produce;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -49,13 +50,16 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
 
     @InjectView(R.id.category_layout)
     public LinearLayout categoryLayout;
-    @InjectView(R.id.fab)
-    public FloatingActionButton fab;
+    @InjectView(R.id.add_another)
+    public Button addAnother;
 
     @InjectView(R.id.add_card)
     public Button addCard;
+    @InjectView(R.id.cancel)
+    public Button cancel;
 
     private LayoutInflater mInflater;
+    private int currentColor;
 
     public static AddCardFragment newInstance() {
         AddCardFragment fragment = new AddCardFragment();
@@ -91,6 +95,7 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         View v = inflater.inflate(R.layout.fragment_add_card, container, false);
 
         ButterKnife.inject(this, v);
@@ -101,8 +106,9 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
         orangeButton.setOnClickListener(this);
         redButton.setOnClickListener(this);
         greyButton.setOnClickListener(this);
-        fab.setOnClickListener(this);
+        addAnother.setOnClickListener(this);
         addCard.setOnClickListener(this);
+        cancel.setOnClickListener(this);
 
         mInflater = LayoutInflater.from(getActivity());
 
@@ -115,40 +121,45 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_blue));
 //            }
+            currentColor = getResources().getColor(R.color.light_blue);
             addCard.setTextColor(getResources().getColor(R.color.light_blue));
-            fab.setColor(getResources().getColor(R.color.light_blue));
+            addAnother.setTextColor(getResources().getColor(R.color.light_blue));
         } else if (v.equals(purpleButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_purple));
 //            }
+            currentColor = getResources().getColor(R.color.light_purple);
             addCard.setTextColor(getResources().getColor(R.color.light_purple));
-            fab.setColor(getResources().getColor(R.color.light_purple));
+            addAnother.setTextColor(getResources().getColor(R.color.light_purple));
         } else if (v.equals(greenButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_green));
 //            }
+            currentColor = getResources().getColor(R.color.light_green);
             addCard.setTextColor(getResources().getColor(R.color.light_green));
-            fab.setColor(getResources().getColor(R.color.light_green));
+            addAnother.setTextColor(getResources().getColor(R.color.light_green));
         } else if (v.equals(orangeButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_orange));
 //            }
+            currentColor = getResources().getColor(R.color.light_orange);
             addCard.setTextColor(getResources().getColor(R.color.light_orange));
-            fab.setColor(getResources().getColor(R.color.light_orange));
+            addAnother.setTextColor(getResources().getColor(R.color.light_orange));
         } else if (v.equals(redButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_red));
 //            }
+            currentColor = getResources().getColor(R.color.light_red);
             addCard.setTextColor(getResources().getColor(R.color.light_red));
-            fab.setColor(getResources().getColor(R.color.light_red));
+            addAnother.setTextColor(getResources().getColor(R.color.light_red));
         } else if (v.equals(greyButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_grey));
 //            }
             addCard.setTextColor(getResources().getColor(R.color.light_grey));
-            fab.setColor(getResources().getColor(R.color.light_grey));
-        } else if (v.equals(fab)) {
-            View newView = mInflater.inflate(R.layout.category_layout, null);
+            addAnother.setTextColor(getResources().getColor(R.color.light_grey));
+        } else if (v.equals(addAnother)) {
+            View newView = mInflater.inflate(R.layout.add_category_rate_sublayout, null);
             int index = categoryLayout.getChildCount() - 1;
             categoryLayout.addView(newView, index);
 
@@ -156,14 +167,14 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
             ArrayList<CategoryRate> rates = new ArrayList<CategoryRate>();
 
             for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
-                CategoryRateViewHolder viewHolder = new CategoryRateViewHolder(categoryLayout.getChildAt(index));
+                AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
                 if (!viewHolder.categoryName.getText().toString().equals("") && !viewHolder.categoryRate.getText().toString().equals("")) {
                     CategoryRate cRate = new CategoryRate(viewHolder.categoryName.getText().toString(), Float.parseFloat(viewHolder.categoryRate.getText().toString()));
                     rates.add(cRate);
                 }
             }
 
-            Card c = new Card(cardName.getText().toString(), Float.parseFloat(cardRate.getText().toString()), rates);
+            Card c = new Card(cardName.getText().toString(), Float.parseFloat(cardRate.getText().toString()), rates, currentColor);
 
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
             String cardsJson = preferences.getString("Cards", "");
@@ -181,6 +192,8 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
 
             BusProvider.getInstance().post(produceCardAddedEvent());
 
+            dismissAllowingStateLoss();
+        } else if(v.equals(cancel)) {
             dismissAllowingStateLoss();
         }
     }
