@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +20,16 @@ import com.alexwglenn.ccrewardsbuddy.model.Card;
 import com.alexwglenn.ccrewardsbuddy.model.CardsAddedEvent;
 import com.alexwglenn.ccrewardsbuddy.model.CardsDeletedEvent;
 import com.alexwglenn.ccrewardsbuddy.model.CardsUpdatedEvent;
+import com.alexwglenn.ccrewardsbuddy.model.CategoryAddedEvent;
 import com.alexwglenn.ccrewardsbuddy.model.CategoryRate;
 import com.alexwglenn.ccrewardsbuddy.model.RewardCategory;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.shamanland.fab.FloatingActionButton;
@@ -37,7 +46,7 @@ import java.util.Map;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-public class RewardCategoryFragment extends Fragment implements AbsListView.OnItemClickListener {
+public class RewardCategoryFragment extends Fragment implements AbsListView.OnItemClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     /**
      * The fragment's ListView/GridView.
@@ -47,6 +56,8 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
 
     @InjectView(R.id.fab)
     public FloatingActionButton fab;
+
+    private GoogleApiClient mGoogleApiClient;
 
 
     /**
@@ -76,7 +87,21 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
         if (getArguments() != null) {
         }
 
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        Log.d("Reward Cat", "allocating");
+
         updateRewards();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d("Reward Cat", "Connecting");
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -166,6 +191,10 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
         updateRewards();
     }
 
+    @Subscribe public void onCatsAdded(CategoryAddedEvent event) {
+        updateRewards();
+    }
+
     private void updateRewards() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 //        String cardsJson = preferences.getString("Cards", "[{\"name\":\"Chase Freedom\",\"basePercentage\":0.01,\"categoryRates\":[{\"Grocery Stores\":0.05},{\"Movie Theatres\":0.05}]},{\"name\":\"Capital One Quicksilver\",\"basePercentage\":0.015, \"categoryRates\":[]}]");
@@ -173,10 +202,19 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
 
         Gson gson = new Gson();
 
-        Type listType = new TypeToken<ArrayList<Card>>() {}.getType();
-        List<Card> cards = gson.fromJson(cardsJson, listType);
+        Type cardListType = new TypeToken<ArrayList<Card>>() {}.getType();
+        List<Card> cards = gson.fromJson(cardsJson, cardListType);
         if (cards == null) {
             cards = new ArrayList<Card>();
+        }
+
+        String categoriesJson = preferences.getString("RewardCategories", "");
+
+        Type categoryListType = new TypeToken<ArrayList<RewardCategory>>() {}.getType();
+
+        ArrayList<RewardCategory> categoryList = gson.fromJson(categoriesJson, categoryListType);
+        if (categoryList == null) {
+            categoryList = new ArrayList<>();
         }
 
         List<String> cats = new ArrayList<>();
@@ -193,6 +231,10 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
             for (CategoryRate rate : c.categoryRates) {
                 cats.add(rate.categoryName);
             }
+        }
+
+        for (RewardCategory rCat : categoryList) {
+            cats.add(rCat.categoryName);
         }
 
         List<String> uniqueCats = new ArrayList<>(new HashSet<String>(cats));
@@ -242,7 +284,31 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
             mAdapter.setRewardCategories(rewardList);
             mAdapter.notifyDataSetChanged();
         }
+
+        Log.d("Reward Cat", "Sending");
+        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/rewardcategories");
+        putDataMapReq.getDataMap().putString(CAT_KEY, gson.toJson(rewardList, categoryListType));
+        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+
+        Log.d("Reward Cat", "Sent");
     }
 
+    private static String CAT_KEY = "com.alexwglenn.whichcard.rewardcategories";
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d("Reward Cat", "Connected");
+        updateRewards();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d("Reward Cat", "connection suspended");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d("Reward Cat", "connection failed");
+    }
 }

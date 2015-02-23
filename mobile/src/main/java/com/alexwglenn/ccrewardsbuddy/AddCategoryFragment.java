@@ -1,6 +1,8 @@
 package com.alexwglenn.ccrewardsbuddy;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +10,15 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.alexwglenn.ccrewardsbuddy.model.CategoryAddedEvent;
+import com.alexwglenn.ccrewardsbuddy.model.RewardCategory;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.squareup.otto.Produce;
+
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -82,8 +93,31 @@ public class AddCategoryFragment extends DialogFragment implements View.OnClickL
             dismissAllowingStateLoss();
         }
         else if (v.equals(addCategory)) {
+            RewardCategory rCat = new RewardCategory(categoryName.getText().toString(), 0.0f, null);
 
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String categoriesJson = preferences.getString("RewardCategories", "");
+            Gson gson = new Gson();
+
+            Type listType = new TypeToken<ArrayList<RewardCategory>>() {}.getType();
+
+            ArrayList<RewardCategory> categoryList = gson.fromJson(categoriesJson, listType);
+            if (categoryList == null) {
+                categoryList = new ArrayList<>();
+            }
+            categoryList.add(rCat);
+
+            preferences.edit().putString("RewardCategories", gson.toJson(categoryList, listType)).commit();
+
+            BusProvider.getInstance().post(produceCategoryAddedEvent());
+
+            dismissAllowingStateLoss();
 
         }
+    }
+
+    @Produce
+    public CategoryAddedEvent produceCategoryAddedEvent() {
+        return new CategoryAddedEvent();
     }
 }
