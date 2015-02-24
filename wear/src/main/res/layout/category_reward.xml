@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wearable.view.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardBG"
+    android:orientation="vertical"
+    android:layout_width="174dp"
+    android:layout_height="110dp"
+    android:background="@color/red"
+    app:layout_box="all"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:layout_margin="30dp">
+
+    <TextView
+        android:id="@+id/categoryName"
+        style="@style/TextView.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:text="Home Improvement"
+        android:singleLine="true"
+        android:textColor="@color/white"/>
+
+    <TextView
+        android:id="@+id/bestCardName"
+        style="@style/TextView.Small"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:singleLine="true"
+        android:text="Chase Freedom Visa"
+        android:textColor="@color/white"/>
+
+    <TextView
+        style="@style/TextView.Large"
+        android:id="@+id/bestCardRate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        android:text="5%"
+        android:textColor="@color/white"/>
+
+</LinearLayout>
+    </android.support.wearable.view.BoxInsetLayout>
