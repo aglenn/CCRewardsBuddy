@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.internal.widget.AdapterViewCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,27 +16,37 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.support.design.widget.FloatingActionButton;
 
 import com.alexwglenn.whatcard.model.Card;
 import com.alexwglenn.whatcard.model.CardsAddedEvent;
 import com.alexwglenn.whatcard.model.CardsDeletedEvent;
+import com.alexwglenn.whatcard.model.CardsResponse;
 import com.alexwglenn.whatcard.model.CardsUpdatedEvent;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.shamanland.fab.FloatingActionButton;
+
 import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import retrofit2.Response;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class CardFragment extends Fragment implements AbsListView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
-    private ArrayList<Card> cards;
+    static final String TAG = "CardFragment";
+
+    @Inject
+    ThisCardService thisCardService;
 
     /**
      * The fragment's ListView/GridView.
@@ -74,8 +84,30 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         if (getArguments() != null) {
         }
 
-        updateCards();
+//        updateCards();
 
+        ((WhatCard)getActivity().getApplication()).getComponent().inject(this);
+
+        thisCardService.getUserCards("1")
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.newThread())
+                .subscribe(new Subscriber<Response<Card[]>>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d(TAG, "Getting cards complete");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d(TAG, "An error getting cards " + e.getLocalizedMessage());
+                        Log.d(TAG, "An error getting cards " + e.toString());
+                    }
+
+                    @Override
+                    public void onNext(Response<Card[]> response) {
+                        Log.d(TAG, "Got a response: " + response.code() + " " + response.body());
+                    }
+                });
     }
 
     @Override
@@ -161,12 +193,12 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         builder.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                cards.remove(position);
+//                cards.remove(position);
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 Gson gson = new Gson();
                 Type listType = new TypeToken<ArrayList<Card>>() {}.getType();
-                preferences.edit().putString("Cards", gson.toJson(cards, listType)).commit();
-                BusProvider.getInstance().post(produceCardDeletedEvent());
+//                preferences.edit().putString("Cards", gson.toJson(cards, listType)).commit();
+//                BusProvider.getInstance().post(produceCardDeletedEvent());
                 dialog.dismiss();
             }
         });
@@ -189,42 +221,42 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         }
     }
 
-    @Produce
-    public CardsDeletedEvent produceCardDeletedEvent() {
-        return new CardsDeletedEvent();
-    }
+//    @Produce
+//    public CardsDeletedEvent produceCardDeletedEvent() {
+//        return new CardsDeletedEvent();
+//    }
 
-    @Subscribe public void onCardsUpdated(CardsUpdatedEvent event) {
-        updateCards();
-    }
+//    @Subscribe public void onCardsUpdated(CardsUpdatedEvent event) {
+//        updateCards();
+//    }
+//
+//    @Subscribe public void onCardsDeleted(CardsDeletedEvent event) {
+//        updateCards();
+//    }
+//
+//    @Subscribe public void onCardsAdded(CardsAddedEvent event) {
+//        updateCards();
+//    }
 
-    @Subscribe public void onCardsDeleted(CardsDeletedEvent event) {
-        updateCards();
-    }
-
-    @Subscribe public void onCardsAdded(CardsAddedEvent event) {
-        updateCards();
-    }
-
-    private void updateCards() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-//        String cardsJson = preferences.getString("Cards", "[{\"name\":\"Chase Freedom\",\"basePercentage\":0.01,\"categoryRates\":[{\"Grocery Stores\":0.05},{\"Movie Theatres\":0.05}]},{\"name\":\"Capital One Quicksilver\",\"basePercentage\":0.015, \"categoryRates\":[]}]");
-        String cardsJson = preferences.getString("Cards", "");
-
-        Gson gson = new Gson();
-
-        Type listType = new TypeToken<ArrayList<Card>>() {}.getType();
-        cards = gson.fromJson(cardsJson, listType);
-        if (cards == null) {
-            cards = new ArrayList<Card>();
-        }
-
-        if (mAdapter == null) {
-            mAdapter = new CardAdapter(cards, getActivity());
-        } else {
-            mAdapter.setCards(cards);
-            mAdapter.notifyDataSetChanged();
-        }
-    }
+//    private void updateCards() {
+//        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+////        String cardsJson = preferences.getString("Cards", "[{\"name\":\"Chase Freedom\",\"basePercentage\":0.01,\"categoryRates\":[{\"Grocery Stores\":0.05},{\"Movie Theatres\":0.05}]},{\"name\":\"Capital One Quicksilver\",\"basePercentage\":0.015, \"categoryRates\":[]}]");
+//        String cardsJson = preferences.getString("Cards", "");
+//
+//        Gson gson = new Gson();
+//
+//        Type listType = new TypeToken<ArrayList<Card>>() {}.getType();
+//        cards = gson.fromJson(cardsJson, listType);
+//        if (cards == null) {
+//            cards = new ArrayList<Card>();
+//        }
+//
+//        if (mAdapter == null) {
+//            mAdapter = new CardAdapter(cards, getActivity());
+//        } else {
+//            mAdapter.setCards(cards);
+//            mAdapter.notifyDataSetChanged();
+//        }
+//    }
 
 }

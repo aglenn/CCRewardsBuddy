@@ -19,7 +19,6 @@ import com.alexwglenn.whatcard.model.CategoryRate;
 import com.alexwglenn.whatcard.viewholders.AddCategoryRateViewHolder;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.shamanland.fab.FloatingActionButton;
 import com.squareup.otto.Produce;
 
 import java.lang.reflect.Type;

@@ -1,0 +1,35 @@
+package com.alexwglenn.whatcard;
+
+import android.app.Application;
+
+import javax.inject.Singleton;
+
+import dagger.Component;
+
+/**
+ * Created by aglenn on 1/20/16.
+ */
+public class WhatCard extends Application {
+
+    private WhatCardComponent mComponent;
+
+    @Singleton
+    @Component(modules = WhatCardModule.class)
+    public interface WhatCardComponent {
+//        void inject(WhatCard application);
+        void inject(CardFragment cardFragment);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+
+        mComponent = DaggerWhatCard_WhatCardComponent.builder().whatCardModule(new WhatCardModule()).build();
+//        mComponent.inject(this);
+    }
+
+    public WhatCardComponent getComponent() {
+        return mComponent;
+    }
+}

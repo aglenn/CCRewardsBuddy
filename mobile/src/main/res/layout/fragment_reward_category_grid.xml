@@ -18,15 +18,12 @@
         android:layout_height="match_parent"
         android:gravity="center"/>
 
-    <com.shamanland.fab.FloatingActionButton
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_action_add"
-        app:floatingActionButtonColor="@color/accent"
-        app:floatingActionButtonSize="normal"
         android:layout_gravity="bottom|right"
         android:layout_margin="15dp"
-        />
+        android:src="@drawable/ic_action_add"/>
 
 </FrameLayout>
