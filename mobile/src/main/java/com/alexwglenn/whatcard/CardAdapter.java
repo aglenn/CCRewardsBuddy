@@ -11,34 +11,21 @@ import com.alexwglenn.whatcard.viewholders.CardViewHolder;
 
 import java.util.ArrayList;
 
+import io.realm.OrderedRealmCollection;
+import io.realm.RealmBaseAdapter;
+
 /**
  * Created by aglenn on 2/19/15.
  */
-public class CardAdapter extends BaseAdapter {
+public class CardAdapter extends RealmBaseAdapter<Card> {
 
-    private ArrayList<Card> cards;
     private Context mContext;
     private LayoutInflater mInflater;
 
-    public CardAdapter(ArrayList<Card> cards, Context context) {
-        this.cards = cards;
+    public CardAdapter(OrderedRealmCollection<Card> cardCollection, Context context) {
+        super(context, cardCollection);
         this.mContext = context;
         mInflater = LayoutInflater.from(mContext);
-    }
-
-    @Override
-    public int getCount() {
-        return cards.size();
-    }
-
-    @Override
-    public Card getItem(int position) {
-        return cards.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return position;
     }
 
     @Override
@@ -55,21 +42,12 @@ public class CardAdapter extends BaseAdapter {
             viewHolder = (CardViewHolder) convertView.getTag();
         }
 
-        Card c = getItem(position);
+        Card c = adapterData.get(position);
 
-        viewHolder.cardTitle.setText(c.name);
-        viewHolder.cardBasePercentage.setText(c.basePercentage + "%");
-        viewHolder.cardVariablePercentages.setText(Integer.toString(c.categoryRates.size()));
+        viewHolder.cardTitle.setText(c.getName());
+        viewHolder.cardBasePercentage.setText(c.getBasePercentage() + "%");
+        viewHolder.cardVariablePercentages.setText(Integer.toString(c.getCategoryRates().size()));
 
         return convertView;
-    }
-
-    public void setCards(ArrayList<Card> cards) {
-        this.cards = cards;
-    }
-
-    @Override
-    public void notifyDataSetChanged() {
-        super.notifyDataSetChanged();
     }
 }

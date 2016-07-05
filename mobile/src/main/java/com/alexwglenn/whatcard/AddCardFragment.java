@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.alexwglenn.whatcard.model.AddCardResponse;
 import com.alexwglenn.whatcard.model.Card;
 import com.alexwglenn.whatcard.model.CardsAddedEvent;
 import com.alexwglenn.whatcard.model.CategoryRate;
@@ -24,10 +26,23 @@ import com.squareup.otto.Produce;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
+import javax.inject.Inject;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import io.realm.Realm;
+import io.realm.RealmList;
+import retrofit2.Response;
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
-public class AddCardFragment extends DialogFragment implements View.OnClickListener{
+public class AddCardFragment extends DialogFragment implements View.OnClickListener, Observer<Response<AddCardResponse>> {
+
+    static final String TAG = "AddCardFragment";
+
+    @Inject
+    ThisCardService thisCardService;
 
     @InjectView(R.id.card_name)
     public EditText cardName;
@@ -59,6 +74,8 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
 
     private LayoutInflater mInflater;
     private int currentColor;
+
+    private Card addingCard;
 
     public static AddCardFragment newInstance() {
         AddCardFragment fragment = new AddCardFragment();
@@ -96,6 +113,8 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
         // Inflate the layout for this fragment
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         View v = inflater.inflate(R.layout.fragment_add_card, container, false);
+
+        ((WhatCard)getActivity().getApplication()).getComponent().inject(this);
 
         ButterKnife.inject(this, v);
 
@@ -164,7 +183,7 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
             categoryLayout.addView(newView, index);
 
         } else if(v.equals(addCard)) {
-            ArrayList<CategoryRate> rates = new ArrayList<CategoryRate>();
+            RealmList<CategoryRate> rates = new RealmList<CategoryRate>();
 
             for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
                 AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
@@ -174,25 +193,15 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
                 }
             }
 
-            Card c = new Card(cardName.getText().toString(), Float.parseFloat(cardRate.getText().toString()), rates, currentColor);
+            addingCard = new Card(cardName.getText().toString(), Float.parseFloat(cardRate.getText().toString()), rates, currentColor);
 
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String cardsJson = preferences.getString("Cards", "");
-            Gson gson = new Gson();
+            thisCardService.addUserCard("1", addingCard, "09ef2344-9667-4811-9b28-fc05089d48e6")
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.newThread())
+                    .subscribe(this);
 
-            Type listType = new TypeToken<ArrayList<Card>>() {}.getType();
 
-            ArrayList<Card> cardList = gson.fromJson(cardsJson, listType);
-            if (cardList == null) {
-                cardList = new ArrayList<Card>();
-            }
-            cardList.add(c);
 
-            preferences.edit().putString("Cards", gson.toJson(cardList, listType)).commit();
-
-            BusProvider.getInstance().post(produceCardAddedEvent());
-
-            dismissAllowingStateLoss();
         } else if(v.equals(cancel)) {
             dismissAllowingStateLoss();
         }
@@ -200,5 +209,24 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
 
     @Produce public CardsAddedEvent produceCardAddedEvent() {
         return new CardsAddedEvent();
+    }
+
+    @Override
+    public void onCompleted() {
+
+    }
+
+    @Override
+    public void onError(Throwable e) {
+
+    }
+
+    @Override
+    public void onNext(Response<AddCardResponse> addCardResponseResponse) {
+        addingCard.setId(addCardResponseResponse.body().cardID);
+        Realm realm = Realm.getDefaultInstance();
+        realm.beginTransaction();
+        final Card managedCard = realm.copyToRealm(addingCard);
+        realm.commitTransaction();
     }
 }

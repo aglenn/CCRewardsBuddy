@@ -5,6 +5,8 @@ import android.app.Application;
 import javax.inject.Singleton;
 
 import dagger.Component;
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 /**
  * Created by aglenn on 1/20/16.
@@ -16,7 +18,7 @@ public class WhatCard extends Application {
     @Singleton
     @Component(modules = WhatCardModule.class)
     public interface WhatCardComponent {
-//        void inject(WhatCard application);
+        void inject(AddCardFragment addCardFragment);
         void inject(CardFragment cardFragment);
     }
 
@@ -26,6 +28,9 @@ public class WhatCard extends Application {
 
 
         mComponent = DaggerWhatCard_WhatCardComponent.builder().whatCardModule(new WhatCardModule()).build();
+
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
+        Realm.setDefaultConfiguration(realmConfig);
 //        mComponent.inject(this);
     }
 

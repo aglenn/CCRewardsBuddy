@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName;
 public class AddCardResponse {
 
     @SerializedName("card_id")
-    public String cardID;
+    public int cardID;
 
     @SerializedName("message")
     public String errorMessage;

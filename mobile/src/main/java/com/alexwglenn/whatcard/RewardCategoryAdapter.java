@@ -57,7 +57,7 @@ public class RewardCategoryAdapter extends BaseAdapter {
         RewardCategory rCat = getItem(position);
 
         viewHolder.categoryName.setText(rCat.categoryName);
-        viewHolder.bestCardName.setText(rCat.bestCard.name);
+        viewHolder.bestCardName.setText(rCat.bestCard.getName());
         viewHolder.bestCardRate.setText(rCat.bestRate + "%");
 
 

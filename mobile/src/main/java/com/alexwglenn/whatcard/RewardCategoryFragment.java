@@ -224,7 +224,7 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
         cats.add("Other");
 
         for (Card c : cards) {
-            for (CategoryRate rate : c.categoryRates) {
+            for (CategoryRate rate : c.getCategoryRates()) {
                 cats.add(rate.categoryName);
             }
         }
@@ -239,24 +239,24 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
         Map<String,RewardCategory> rewardCats = new HashMap<>();
         for (String categoryName : uniqueCats) {
             for (Card card : cards) {
-                if (card.color == Color.BLACK) {
-                    card.color = getResources().getColor(R.color.light_grey);
+                if (card.getColor() == Color.BLACK) {
+                    card.setColor(getResources().getColor(R.color.light_grey));
                 }
                 // check the base rate of the card first
                 if(rewardCats.get(categoryName) != null) {
                     RewardCategory rCat = rewardCats.get(categoryName);
-                    if (card.basePercentage > rCat.bestRate) {
+                    if (card.getBasePercentage() > rCat.bestRate) {
                         rCat.bestCard = card;
-                        rCat.bestRate = card.basePercentage;
+                        rCat.bestRate = card.getBasePercentage();
                         rewardCats.put(categoryName, rCat);
                     }
                 } else {
-                    RewardCategory rCat = new RewardCategory(categoryName, card.basePercentage, card);
+                    RewardCategory rCat = new RewardCategory(categoryName, card.getBasePercentage(), card);
                     rewardCats.put(categoryName, rCat);
                 }
 
                 // Now check any rotating categories or special ones
-                for (CategoryRate rate : card.categoryRates) {
+                for (CategoryRate rate : card.getCategoryRates()) {
                     if (rate.categoryName.equals(categoryName)) {
                         if(rewardCats.get(categoryName) != null) {
                             RewardCategory rCat = rewardCats.get(categoryName);

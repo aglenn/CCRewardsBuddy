@@ -31,11 +31,15 @@ import com.squareup.otto.Subscribe;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import io.realm.Realm;
+import io.realm.RealmResults;
 import retrofit2.Response;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -88,7 +92,7 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
 
         ((WhatCard)getActivity().getApplication()).getComponent().inject(this);
 
-        thisCardService.getUserCards("1")
+        thisCardService.getUserCards("1", "09ef2344-9667-4811-9b28-fc05089d48e6")
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(new Subscriber<Response<Card[]>>() {
@@ -106,6 +110,11 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
                     @Override
                     public void onNext(Response<Card[]> response) {
                         Log.d(TAG, "Got a response: " + response.code() + " " + response.body());
+                        List<Card> cards = Arrays.asList(response.body());
+                        Realm realm = Realm.getDefaultInstance();
+                        realm.beginTransaction();
+                        realm.copyToRealm(cards);
+                        realm.commitTransaction();
                     }
                 });
     }
@@ -117,6 +126,9 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
 
         ButterKnife.inject(this, view);
 
+        Realm realm = Realm.getDefaultInstance();
+        RealmResults<Card> cards = realm.where(Card.class).findAll();
+        mAdapter = new CardAdapter(cards, getActivity());
         // Set the adapter
         mListView.setAdapter(mAdapter);
 
@@ -193,12 +205,14 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         builder.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-//                cards.remove(position);
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                Gson gson = new Gson();
-                Type listType = new TypeToken<ArrayList<Card>>() {}.getType();
-//                preferences.edit().putString("Cards", gson.toJson(cards, listType)).commit();
-//                BusProvider.getInstance().post(produceCardDeletedEvent());
+                Realm realm = Realm.getDefaultInstance();
+                realm.beginTransaction();
+                Card card = mAdapter.getItem(position);
+                card.deleteFromRealm();
+                realm.commitTransaction();
+
+                //TODO: Remove on server
+
                 dialog.dismiss();
             }
         });
