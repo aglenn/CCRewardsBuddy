@@ -7,9 +7,9 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="/Volumes/Sensitive/git/WhatCard-Android" />
-            <option value="/Volumes/Sensitive/git/WhatCard-Android/mobile" />
-            <option value="/Volumes/Sensitive/git/WhatCard-Android/wear" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/mobile" />
+            <option value="$PROJECT_DIR$/wear" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
