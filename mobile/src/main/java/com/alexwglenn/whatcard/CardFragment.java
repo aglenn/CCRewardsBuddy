@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.support.design.widget.FloatingActionButton;
 
+import com.alexwglenn.whatcard.model.AuthorizeResponse;
 import com.alexwglenn.whatcard.model.Card;
 import com.alexwglenn.whatcard.model.CardsAddedEvent;
 import com.alexwglenn.whatcard.model.CardsDeletedEvent;
@@ -90,9 +91,12 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
 
 //        updateCards();
 
-        ((WhatCard)getActivity().getApplication()).getComponent().inject(this);
+        ((WhatCard) getActivity().getApplication()).getComponent().inject(this);
 
-        thisCardService.getUserCards("1", "09ef2344-9667-4811-9b28-fc05089d48e6")
+        Realm realm = Realm.getDefaultInstance();
+        AuthorizeResponse session = realm.where(AuthorizeResponse.class).findFirst();
+
+        thisCardService.getUserCards(session.userID, session.sessionKey)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.newThread())
                 .subscribe(new Subscriber<Response<Card[]>>() {
@@ -119,9 +123,17 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
                 });
     }
 
+    public void onNext(Response<Card[]> response) {
+        Log.d(TAG, "Got a response: " + response.code() + " " + response.body());
+        List<Card> cards = Arrays.asList(response.body());
+        Realm realm = Realm.getDefaultInstance();
+        realm.beginTransaction();
+        realm.copyToRealm(cards);
+        realm.commitTransaction();
+    }
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_card, container, false);
 
         ButterKnife.inject(this, view);
@@ -138,21 +150,22 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isVisible()) {
+                if (isVisible()) {
                     FragmentTransaction ft = getChildFragmentManager().beginTransaction();
                     Fragment prev = getChildFragmentManager().findFragmentByTag(AddCardFragment.class.getSimpleName());
-                    if(prev != null) {
+                    if (prev != null) {
                         ft.remove(prev).commit();
                         ft = getChildFragmentManager().beginTransaction();
                     }
                     ft.addToBackStack(null);
+                    mListView.setAdapter(mAdapter);
+
 
                     AddCardFragment addCardDialog = AddCardFragment.newInstance();
                     addCardDialog.show(getChildFragmentManager(), AddCardFragment.class.getSimpleName());
                 }
             }
         });
-
         return view;
     }
 
@@ -184,7 +197,8 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
     }
 
     @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+    public boolean onItemLongClick(AdapterView<?> parent, View view,
+                                   final int position, long id) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setPositiveButton("Edit", new DialogInterface.OnClickListener() {
@@ -227,6 +241,7 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
      * the list is empty. If you would like to change the text, call this method
      * to supply the text it should use.
      */
+
     public void setEmptyText(CharSequence emptyText) {
         View emptyView = mListView.getEmptyView();
 

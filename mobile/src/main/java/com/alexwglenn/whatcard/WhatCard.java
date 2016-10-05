@@ -20,6 +20,7 @@ public class WhatCard extends Application {
     public interface WhatCardComponent {
         void inject(AddCardFragment addCardFragment);
         void inject(CardFragment cardFragment);
+        void inject(LoginActivity loginActivity);
     }
 
     @Override

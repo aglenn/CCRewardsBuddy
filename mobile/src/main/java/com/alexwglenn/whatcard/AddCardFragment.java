@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.alexwglenn.whatcard.model.AddCardResponse;
+import com.alexwglenn.whatcard.model.AuthorizeResponse;
 import com.alexwglenn.whatcard.model.Card;
 import com.alexwglenn.whatcard.model.CardsAddedEvent;
 import com.alexwglenn.whatcard.model.CategoryRate;
@@ -25,6 +26,7 @@ import com.squareup.otto.Produce;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.inject.Inject;
 
@@ -128,6 +130,12 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
         addCard.setOnClickListener(this);
         cancel.setOnClickListener(this);
 
+        for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
+            AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
+            viewHolder.startDate.setOnClickListener(new CardDatePicker(getActivity(), viewHolder.startDate));
+            viewHolder.endDate.setOnClickListener(new CardDatePicker(getActivity(), viewHolder.endDate));
+        }
+
         mInflater = LayoutInflater.from(getActivity());
 
         return v;
@@ -137,50 +145,56 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
     public void onClick(View v) {
         if (v.equals(blueButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_blue));
+                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_blue));
 //            }
             currentColor = getResources().getColor(R.color.light_blue);
             addCard.setTextColor(getResources().getColor(R.color.light_blue));
             addAnother.setTextColor(getResources().getColor(R.color.light_blue));
         } else if (v.equals(purpleButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_purple));
+                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_purple));
 //            }
             currentColor = getResources().getColor(R.color.light_purple);
             addCard.setTextColor(getResources().getColor(R.color.light_purple));
             addAnother.setTextColor(getResources().getColor(R.color.light_purple));
         } else if (v.equals(greenButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_green));
+                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_green));
 //            }
             currentColor = getResources().getColor(R.color.light_green);
             addCard.setTextColor(getResources().getColor(R.color.light_green));
             addAnother.setTextColor(getResources().getColor(R.color.light_green));
         } else if (v.equals(orangeButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_orange));
+                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_orange));
 //            }
             currentColor = getResources().getColor(R.color.light_orange);
             addCard.setTextColor(getResources().getColor(R.color.light_orange));
             addAnother.setTextColor(getResources().getColor(R.color.light_orange));
         } else if (v.equals(redButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_red));
+                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_red));
 //            }
             currentColor = getResources().getColor(R.color.light_red);
             addCard.setTextColor(getResources().getColor(R.color.light_red));
             addAnother.setTextColor(getResources().getColor(R.color.light_red));
         } else if (v.equals(greyButton)) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_grey));
+                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_grey));
 //            }
             currentColor = getResources().getColor(R.color.light_grey);
             addCard.setTextColor(getResources().getColor(R.color.light_grey));
             addAnother.setTextColor(getResources().getColor(R.color.light_grey));
         } else if (v.equals(addAnother)) {
             View newView = mInflater.inflate(R.layout.add_category_rate_sublayout, null);
-            int index = categoryLayout.getChildCount() - 1;
-            categoryLayout.addView(newView, index);
+            int insertIndex = categoryLayout.getChildCount() - 1;
+            categoryLayout.addView(newView, insertIndex);
+
+            for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
+                AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
+                viewHolder.startDate.setOnClickListener(new CardDatePicker(getActivity(), viewHolder.startDate));
+                viewHolder.endDate.setOnClickListener(new CardDatePicker(getActivity(), viewHolder.endDate));
+            }
 
         } else if(v.equals(addCard)) {
             RealmList<CategoryRate> rates = new RealmList<CategoryRate>();
@@ -188,14 +202,29 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
             for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
                 AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
                 if (!viewHolder.categoryName.getText().toString().equals("") && !viewHolder.categoryRate.getText().toString().equals("")) {
-                    CategoryRate cRate = new CategoryRate(viewHolder.categoryName.getText().toString(), Float.parseFloat(viewHolder.categoryRate.getText().toString()));
+
+                    String categoryOrStore = viewHolder.categoryName.getText().toString();
+
+                    String category = "";
+                    String store = "";
+
+                    if (viewHolder.isStore.isChecked()) {
+                        store = categoryOrStore;
+                    } else {
+                        category = categoryOrStore;
+                    }
+
+                    CategoryRate cRate = new CategoryRate(store, category, Float.parseFloat(viewHolder.categoryRate.getText().toString()), new Date(), new Date());
                     rates.add(cRate);
                 }
             }
 
             addingCard = new Card(cardName.getText().toString(), Float.parseFloat(cardRate.getText().toString()), rates, currentColor);
 
-            thisCardService.addUserCard("1", addingCard, "09ef2344-9667-4811-9b28-fc05089d48e6")
+            Realm realm = Realm.getDefaultInstance();
+            AuthorizeResponse session = realm.where(AuthorizeResponse.class).findFirst();
+
+            thisCardService.addUserCard(session.userID, addingCard, session.sessionKey)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeOn(Schedulers.newThread())
                     .subscribe(this);
@@ -205,10 +234,6 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
         } else if(v.equals(cancel)) {
             dismissAllowingStateLoss();
         }
-    }
-
-    @Produce public CardsAddedEvent produceCardAddedEvent() {
-        return new CardsAddedEvent();
     }
 
     @Override
@@ -226,7 +251,7 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
         addingCard.setId(addCardResponseResponse.body().cardID);
         Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
-        final Card managedCard = realm.copyToRealm(addingCard);
+        realm.copyToRealm(addingCard);
         realm.commitTransaction();
     }
 }

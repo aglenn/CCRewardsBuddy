@@ -260,13 +260,13 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
                     if (rate.categoryName.equals(categoryName)) {
                         if(rewardCats.get(categoryName) != null) {
                             RewardCategory rCat = rewardCats.get(categoryName);
-                            if (rate.categoryPercentage > rCat.bestRate) {
+                            if (rate.rewardRate > rCat.bestRate) {
                                 rCat.bestCard = card;
-                                rCat.bestRate = rate.categoryPercentage;
+                                rCat.bestRate = rate.rewardRate;
                                 rewardCats.put(categoryName, rCat);
                             }
                         } else {
-                            RewardCategory rCat = new RewardCategory(categoryName, rate.categoryPercentage, card);
+                            RewardCategory rCat = new RewardCategory(categoryName, rate.rewardRate, card);
                             rewardCats.put(categoryName, rCat);
                         }
                     }

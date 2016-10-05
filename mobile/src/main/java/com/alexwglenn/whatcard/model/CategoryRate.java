@@ -1,5 +1,7 @@
 package com.alexwglenn.whatcard.model;
 
+import java.util.Date;
+
 import io.realm.RealmObject;
 
 /**
@@ -7,16 +9,25 @@ import io.realm.RealmObject;
  */
 public class CategoryRate extends RealmObject {
 
+    public String storeName;
     public String categoryName;
-    public float categoryPercentage;
+    public float rewardRate;
+    public Date startDate;
+    public Date endDate;
 
     public CategoryRate() {
+        this.storeName = "";
         this.categoryName = "";
-        this.categoryPercentage = 0.0f;
+        this.rewardRate = 0.0f;
+        this.startDate = new Date();
+        this.endDate = new Date();
     }
 
-    public CategoryRate(String categoryName, float categoryPercentage) {
+    public CategoryRate(String storeName, String categoryName, float rewardRate, Date startDate, Date endDate) {
+        this.storeName = storeName;
         this.categoryName = categoryName;
-        this.categoryPercentage = categoryPercentage;
+        this.rewardRate = rewardRate;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 }

@@ -1,8 +1,10 @@
 package com.alexwglenn.whatcard;
 
+import com.alexwglenn.whatcard.model.AuthorizeResponse;
 import com.alexwglenn.whatcard.model.Card;
 import com.alexwglenn.whatcard.model.AddCardResponse;
 import com.alexwglenn.whatcard.model.CardsResponse;
+import com.alexwglenn.whatcard.model.LoginCredentials;
 
 import retrofit2.Response;
 import retrofit2.http.Body;
@@ -31,4 +33,7 @@ public interface ThisCardService {
 
     @POST("/users/{id}/cards")
     Observable<Response<AddCardResponse>>addUserCard(@Path("id") String userID, @Body Card card, @Header("Session-Key") String sessionKey);
+
+    @POST("/authorize")
+    Observable<Response<AuthorizeResponse>>logIn(@Body LoginCredentials credentials);
 }
