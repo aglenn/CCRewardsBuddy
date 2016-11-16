@@ -1,31 +1,25 @@
 package com.alexwglenn.whatcard;
 
 
-import android.content.SharedPreferences;
+import android.app.Dialog;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.alexwglenn.whatcard.model.AddCardResponse;
 import com.alexwglenn.whatcard.model.AuthorizeResponse;
 import com.alexwglenn.whatcard.model.Card;
-import com.alexwglenn.whatcard.model.CardsAddedEvent;
 import com.alexwglenn.whatcard.model.CategoryRate;
 import com.alexwglenn.whatcard.viewholders.AddCategoryRateViewHolder;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.squareup.otto.Produce;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Date;
 
 import javax.inject.Inject;
@@ -46,10 +40,16 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
     @Inject
     ThisCardService thisCardService;
 
+    @InjectView(R.id.scroll)
+    public ScrollView scroll;
     @InjectView(R.id.card_name)
     public EditText cardName;
-    @InjectView(R.id.card_rate)
-    public EditText cardRate;
+    @InjectView(R.id.bank_name)
+    public EditText bankName;
+    @InjectView(R.id.cardRateTitle)
+    public TextView cardRateTitle;
+    @InjectView(R.id.cardRateSeek)
+    public SeekBar cardRateSeek;
 
     @InjectView(R.id.blue_button)
     public Button blueButton;
@@ -110,10 +110,23 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
     }
 
     @Override
+    public void onStart()
+    {
+        super.onStart();
+        Dialog dialog = getDialog();
+        if (dialog != null)
+        {
+            int width = ViewGroup.LayoutParams.MATCH_PARENT;
+            int height = ViewGroup.LayoutParams.MATCH_PARENT;
+            dialog.getWindow().setLayout(width, height);
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+//        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         View v = inflater.inflate(R.layout.fragment_add_card, container, false);
 
         ((WhatCard)getActivity().getApplication()).getComponent().inject(this);
@@ -138,62 +151,101 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
 
         mInflater = LayoutInflater.from(getActivity());
 
+        cardRateSeek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                float cardRate = (float)i / 4;
+                cardRateTitle.setText("Card Reward Rate: " + cardRate + "%");
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         return v;
+    }
+
+    private void selectButton(Button button) {
+
+        blueButton.setSelected(false);
+        purpleButton.setSelected(false);
+        greenButton.setSelected(false);
+        orangeButton.setSelected(false);
+        redButton.setSelected(false);
+        greyButton.setSelected(false);
+
+        if (button == blueButton) {
+            blueButton.setSelected(true);
+        } else if (button == purpleButton) {
+            purpleButton.setSelected(true);
+        } else if (button == greenButton) {
+            greenButton.setSelected(true);
+        } else if (button == orangeButton) {
+            orangeButton.setSelected(true);
+        } else if (button == redButton) {
+            redButton.setSelected(true);
+        } else if (button == greyButton) {
+            greyButton.setSelected(true);
+        }
     }
 
     @Override
     public void onClick(View v) {
         if (v.equals(blueButton)) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_blue));
-//            }
             currentColor = getResources().getColor(R.color.light_blue);
-            addCard.setTextColor(getResources().getColor(R.color.light_blue));
-            addAnother.setTextColor(getResources().getColor(R.color.light_blue));
+            selectButton(blueButton);
         } else if (v.equals(purpleButton)) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_purple));
-//            }
             currentColor = getResources().getColor(R.color.light_purple);
-            addCard.setTextColor(getResources().getColor(R.color.light_purple));
-            addAnother.setTextColor(getResources().getColor(R.color.light_purple));
+            selectButton(purpleButton);
         } else if (v.equals(greenButton)) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_green));
-//            }
             currentColor = getResources().getColor(R.color.light_green);
-            addCard.setTextColor(getResources().getColor(R.color.light_green));
-            addAnother.setTextColor(getResources().getColor(R.color.light_green));
+            selectButton(greenButton);
         } else if (v.equals(orangeButton)) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_orange));
-//            }
             currentColor = getResources().getColor(R.color.light_orange);
-            addCard.setTextColor(getResources().getColor(R.color.light_orange));
-            addAnother.setTextColor(getResources().getColor(R.color.light_orange));
+            selectButton(orangeButton);
         } else if (v.equals(redButton)) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_red));
-//            }
             currentColor = getResources().getColor(R.color.light_red);
-            addCard.setTextColor(getResources().getColor(R.color.light_red));
-            addAnother.setTextColor(getResources().getColor(R.color.light_red));
+            selectButton(redButton);
         } else if (v.equals(greyButton)) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getActivity().getWindow().setStatusBarColor(getResources().getColor(R.color.light_grey));
-//            }
             currentColor = getResources().getColor(R.color.light_grey);
-            addCard.setTextColor(getResources().getColor(R.color.light_grey));
-            addAnother.setTextColor(getResources().getColor(R.color.light_grey));
+            selectButton(greyButton);
         } else if (v.equals(addAnother)) {
             View newView = mInflater.inflate(R.layout.add_category_rate_sublayout, null);
             int insertIndex = categoryLayout.getChildCount() - 1;
             categoryLayout.addView(newView, insertIndex);
 
+            float lastPercentage = 0;
+            String lastStartDate = "";
+            String lastEndDate = "";
+
             for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
                 AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
+
+                if (lastPercentage != 0) {
+                    viewHolder.setCategoryRate(lastPercentage);
+                }
+
+                if (lastStartDate != "") {
+                    viewHolder.startDate.setText(lastStartDate);
+                }
+
+                if (lastEndDate != "") {
+                    viewHolder.endDate.setText(lastEndDate);
+                }
+
                 viewHolder.startDate.setOnClickListener(new CardDatePicker(getActivity(), viewHolder.startDate));
                 viewHolder.endDate.setOnClickListener(new CardDatePicker(getActivity(), viewHolder.endDate));
+
+                lastPercentage = viewHolder.getCategoryRate();
+                lastStartDate = viewHolder.startDate.getText().toString();
+                lastEndDate = viewHolder.endDate.getText().toString();
             }
 
         } else if(v.equals(addCard)) {
@@ -201,7 +253,7 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
 
             for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
                 AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
-                if (!viewHolder.categoryName.getText().toString().equals("") && !viewHolder.categoryRate.getText().toString().equals("")) {
+                if (!viewHolder.categoryName.getText().toString().equals("")) {
 
                     String categoryOrStore = viewHolder.categoryName.getText().toString();
 
@@ -214,12 +266,14 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
                         category = categoryOrStore;
                     }
 
-                    CategoryRate cRate = new CategoryRate(store, category, Float.parseFloat(viewHolder.categoryRate.getText().toString()), new Date(), new Date());
+                    CategoryRate cRate = new CategoryRate(store, category, viewHolder.getCategoryRate(), new Date(), new Date());
                     rates.add(cRate);
                 }
             }
 
-            addingCard = new Card(cardName.getText().toString(), Float.parseFloat(cardRate.getText().toString()), rates, currentColor);
+            float cardRate = (float)cardRateSeek.getProgress() / 4;
+
+            addingCard = new Card(cardName.getText().toString(), bankName.getText().toString(), cardRate, rates, currentColor);
 
             Realm realm = Realm.getDefaultInstance();
             AuthorizeResponse session = realm.where(AuthorizeResponse.class).findFirst();

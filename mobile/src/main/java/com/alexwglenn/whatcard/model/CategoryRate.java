@@ -1,5 +1,7 @@
 package com.alexwglenn.whatcard.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Date;
 
 import io.realm.RealmObject;
@@ -9,10 +11,15 @@ import io.realm.RealmObject;
  */
 public class CategoryRate extends RealmObject {
 
+    @SerializedName("store_name")
     public String storeName;
+    @SerializedName("category_name")
     public String categoryName;
+    @SerializedName("reward_rate")
     public float rewardRate;
+    @SerializedName("start_date")
     public Date startDate;
+    @SerializedName("end_date")
     public Date endDate;
 
     public CategoryRate() {

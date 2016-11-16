@@ -1,4 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
-    <solid android:color="@color/light_red"/>
-</shape>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="true">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="@color/light_red"/>
+                    <stroke android:width="2dp" android:color="@color/black"/>
+                    <size android:width="36dp" android:height="36dp"/>
+                </shape>
+            </item>
+            <item android:top="15dp" android:bottom="15dp" android:left="15dp" android:right="15dp">
+                <shape android:shape="oval">
+                    <solid android:color="@color/black"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_selected="true">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="@color/light_red"/>
+                    <stroke android:width="2dp" android:color="@color/black"/>
+                    <size android:width="36dp" android:height="36dp"/>
+                </shape>
+            </item>
+            <item android:top="15dp" android:bottom="15dp" android:left="15dp" android:right="15dp">
+                <shape android:shape="oval">
+                    <solid android:color="@color/black"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/light_red"/>
+            <stroke android:width="2dp" android:color="@color/black"/>
+            <size android:width="36dp" android:height="36dp"/>
+        </shape>
+    </item>
+</selector>

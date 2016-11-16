@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/WhatCard.iml" filepath="$PROJECT_DIR$/WhatCard.iml" />
-      <module fileurl="file://$PROJECT_DIR$/mobile/mobile.iml" filepath="$PROJECT_DIR$/mobile/mobile.iml" />
-      <module fileurl="file://$PROJECT_DIR$/wear/wear.iml" filepath="$PROJECT_DIR$/wear/wear.iml" />
+      <module fileurl="file:///Volumes/Sensitive/git/WhatCard-Android/WhatCard-Android.iml" filepath="/Volumes/Sensitive/git/WhatCard-Android/WhatCard-Android.iml" />
+      <module fileurl="file:///Volumes/Sensitive/git/WhatCard-Android/mobile/mobile.iml" filepath="/Volumes/Sensitive/git/WhatCard-Android/mobile/mobile.iml" />
+      <module fileurl="file:///Volumes/Sensitive/git/WhatCard-Android/wear/wear.iml" filepath="/Volumes/Sensitive/git/WhatCard-Android/wear/wear.iml" />
     </modules>
   </component>
 </project>

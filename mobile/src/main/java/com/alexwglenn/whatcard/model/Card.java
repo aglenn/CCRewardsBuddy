@@ -20,27 +20,31 @@ public class Card extends RealmObject {
     private String bankName;
     @SerializedName("base_reward_rate")
     private float basePercentage;
+    @SerializedName("reward_rates")
     private RealmList<CategoryRate> categoryRates;
     private int color;
 
     public Card() {
         this.id = 0;
         this.name = "";
+        this.bankName = "";
         this.basePercentage = 0.0f;
         this.categoryRates = null;
         this.color = 0;
     }
 
-    public Card(String name, float basePercentage, RealmList<CategoryRate> categoryRates, int color) {
+    public Card(String name, String bankName, float basePercentage, RealmList<CategoryRate> categoryRates, int color) {
         this.name = name;
+        this.bankName = bankName;
         this.basePercentage = basePercentage;
         this.categoryRates = categoryRates;
         this.color = color;
     }
 
-    public Card(int id, String name, float basePercentage, RealmList<CategoryRate> categoryRates, int color) {
+    public Card(int id, String name, String bankName, float basePercentage, RealmList<CategoryRate> categoryRates, int color) {
         this.id = id;
         this.name = name;
+        this.bankName = bankName;
         this.basePercentage = basePercentage;
         this.categoryRates = categoryRates;
         this.color = color;
