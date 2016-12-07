@@ -2,16 +2,23 @@ package com.alexwglenn.whatcard;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.alexwglenn.whatcard.model.APIError;
 import com.alexwglenn.whatcard.model.AuthorizeResponse;
 import com.alexwglenn.whatcard.model.LoginCredentials;
+import com.alexwglenn.whatcard.util.ErrorUtils;
 
 import javax.inject.Inject;
 
@@ -19,6 +26,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import io.realm.Realm;
 import retrofit2.Response;
+import rx.Observable;
 import rx.Observer;
 import rx.schedulers.Schedulers;
 
@@ -34,6 +42,8 @@ public class LoginActivity extends AppCompatActivity {
 
     @InjectView(R.id.sign_in_button)
     Button signInButton;
+    @InjectView(R.id.login_progress)
+    ProgressBar progress;
 
     @InjectView(R.id.email)
     EditText emailField;
@@ -54,9 +64,54 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+        emailField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.length() > 0 && passwordField.getText().length() > 0) {
+                    signInButton.setEnabled(true);
+                } else {
+                    signInButton.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        passwordField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (charSequence.length() > 0 && emailField.getText().length() > 0) {
+                    signInButton.setEnabled(true);
+                } else {
+                    signInButton.setEnabled(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                signInButton.animate().setDuration(300).alpha(0.0f);
+                progress.animate().setDuration(300).alpha(1.0f);
                 thisCardService.logIn(new LoginCredentials(emailField.getText().toString(), passwordField.getText().toString()))
                         .observeOn(Schedulers.io())
                         .subscribeOn(Schedulers.io())
@@ -70,6 +125,22 @@ public class LoginActivity extends AppCompatActivity {
                     public void onError(Throwable e) {
                         Log.d(TAG, "Error logging in: " + e.getLocalizedMessage());
                         e.printStackTrace();
+
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                        builder.setTitle(getString(R.string.login_error));
+                        builder.setMessage(e.getMessage());
+                        builder.setNegativeButton("Ok", null);
+                        LoginActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                signInButton.animate().setDuration(300).alpha(1.0f);
+                                progress.animate().setDuration(300).alpha(0.0f);
+
+                                AlertDialog dialog = builder.create();
+                                dialog.show();
+                            }
+                        });
+
                     }
 
                     @Override
@@ -89,7 +160,21 @@ public class LoginActivity extends AppCompatActivity {
                             goToMain();
 
                         } else {
+                            final AlertDialog.Builder builder = new AlertDialog.Builder(LoginActivity.this);
+                            builder.setTitle(getString(R.string.login_error));
+                            APIError error = ErrorUtils.parseError(authorizeResponseResponse);
+                            builder.setMessage(error.message);
+                            builder.setNegativeButton("Ok", null);
+                            LoginActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    signInButton.animate().setDuration(300).alpha(1.0f);
+                                    progress.animate().setDuration(300).alpha(0.0f);
 
+                                    AlertDialog dialog = builder.create();
+                                    dialog.show();
+                                }
+                            });
                         }
                     }
                 });

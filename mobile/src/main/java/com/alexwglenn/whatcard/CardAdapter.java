@@ -34,7 +34,7 @@ public class CardAdapter extends RealmBaseAdapter<Card> {
         CardViewHolder viewHolder;
 
         if(convertView == null) {
-            convertView = mInflater.inflate(R.layout.card_item, null);
+            convertView = mInflater.inflate(R.layout.card_grid_item, null);
             viewHolder = new CardViewHolder(convertView);
             convertView.setTag(viewHolder);
 

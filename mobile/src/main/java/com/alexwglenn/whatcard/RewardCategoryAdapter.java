@@ -46,7 +46,7 @@ public class RewardCategoryAdapter extends BaseAdapter {
         CategoryRewardViewHolder viewHolder;
 
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.reward_category_item, null);
+            convertView = mInflater.inflate(R.layout.reward_category_grid_item, null);
             viewHolder = new CategoryRewardViewHolder(convertView);
             convertView.setTag(viewHolder);
 

@@ -134,7 +134,7 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_card, container, false);
+        View view = inflater.inflate(R.layout.fragment_card_grid, container, false);
 
         ButterKnife.inject(this, view);
 
@@ -154,6 +154,8 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
                     FragmentTransaction ft = getChildFragmentManager().beginTransaction();
                     Fragment prev = getChildFragmentManager().findFragmentByTag(AddCardFragment.class.getSimpleName());
                     if (prev != null) {
+
+
                         ft.remove(prev).commit();
                         ft = getChildFragmentManager().beginTransaction();
                     }

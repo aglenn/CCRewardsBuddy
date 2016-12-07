@@ -108,7 +108,7 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_reward_category, container, false);
+        View view = inflater.inflate(R.layout.fragment_reward_category_grid, container, false);
 
         // Set the adapter
         ButterKnife.inject(this,view);

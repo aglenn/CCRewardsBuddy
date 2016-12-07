@@ -25,19 +25,24 @@ public class WhatCardModule {
     @Provides @Singleton
     ThisCardService provideThisCardService() {
 
+        Retrofit retrofit = oneRetrofit();
+
+        return retrofit.create(ThisCardService.class);
+    }
+
+    @Singleton
+    public static Retrofit oneRetrofit() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
 
-        Retrofit retrofit = new Retrofit.Builder()
+        return new Retrofit.Builder()
                 .baseUrl(BuildConfig.API_BASE)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
-
-        return retrofit.create(ThisCardService.class);
     }
 
 }
