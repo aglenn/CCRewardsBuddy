@@ -6,8 +6,13 @@
              android:layout_height="match_parent"
              tools:context="com.alexwglenn.whatcard.CardFragment">
 
-    <GridView android:id="@+id/cardList" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:numColumns="2" />
+    <GridView android:id="@+id/cardList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:verticalSpacing="8dp"
+        android:horizontalSpacing="8dp"
+        android:padding="8dp"
+        android:numColumns="2" />
 
     <TextView android:id="@android:id/empty" android:layout_width="match_parent"
         android:layout_height="match_parent" android:gravity="center" />

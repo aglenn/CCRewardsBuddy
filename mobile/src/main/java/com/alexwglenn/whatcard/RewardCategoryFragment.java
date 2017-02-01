@@ -1,7 +1,6 @@
 package com.alexwglenn.whatcard;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -19,10 +18,6 @@ import android.widget.TextView;
 
 
 import com.alexwglenn.whatcard.model.Card;
-import com.alexwglenn.whatcard.model.CardsAddedEvent;
-import com.alexwglenn.whatcard.model.CardsDeletedEvent;
-import com.alexwglenn.whatcard.model.CardsUpdatedEvent;
-import com.alexwglenn.whatcard.model.CategoryAddedEvent;
 import com.alexwglenn.whatcard.model.CategoryRate;
 import com.alexwglenn.whatcard.model.RewardCategory;
 import com.google.android.gms.common.ConnectionResult;
@@ -34,7 +29,6 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.squareup.otto.Subscribe;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -46,6 +40,8 @@ import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 public class RewardCategoryFragment extends Fragment implements AbsListView.OnItemClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -112,9 +108,8 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
 
         // Set the adapter
         ButterKnife.inject(this,view);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        mListView.setAdapter(mAdapter);
 
-        // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(this);
 
         fab.setOnClickListener(new View.OnClickListener() {
@@ -179,61 +174,29 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
         }
     }
 
-    @Subscribe
-    public void onCardsUpdated(CardsUpdatedEvent event) {
-        updateRewards();
-    }
-
-    @Subscribe public void onCardsDeleted(CardsDeletedEvent event) {
-        updateRewards();
-    }
-
-    @Subscribe public void onCardsAdded(CardsAddedEvent event) {
-        updateRewards();
-    }
-
-    @Subscribe public void onCatsAdded(CategoryAddedEvent event) {
-        updateRewards();
-    }
-
     private void updateRewards() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-//        String cardsJson = preferences.getString("Cards", "[{\"name\":\"Chase Freedom\",\"basePercentage\":0.01,\"categoryRates\":[{\"Grocery Stores\":0.05},{\"Movie Theatres\":0.05}]},{\"name\":\"Capital One Quicksilver\",\"basePercentage\":0.015, \"categoryRates\":[]}]");
-        String cardsJson = preferences.getString("Cards", "");
 
-        Gson gson = new Gson();
+        Realm realm = Realm.getDefaultInstance();
+        RealmResults<Card> cards = realm.where(Card.class).findAll();
 
-        Type cardListType = new TypeToken<ArrayList<Card>>() {}.getType();
-        List<Card> cards = gson.fromJson(cardsJson, cardListType);
-        if (cards == null) {
-            cards = new ArrayList<Card>();
-        }
+        List<String> rewardCategories = new ArrayList<>();
 
-        String categoriesJson = preferences.getString("RewardCategories", "");
-
-        Type categoryListType = new TypeToken<ArrayList<RewardCategory>>() {}.getType();
-
-        ArrayList<RewardCategory> categoryList = gson.fromJson(categoriesJson, categoryListType);
-        if (categoryList == null) {
-            categoryList = new ArrayList<>();
-        }
-
-        List<String> cats = new ArrayList<>();
-
-        cats.add("Clothing");
-        cats.add("Other");
+        rewardCategories.add("Restaurants");
+        rewardCategories.add("Grocery");
+        rewardCategories.add("Clothing");
+        rewardCategories.add("Other");
 
         for (Card c : cards) {
             for (CategoryRate rate : c.getCategoryRates()) {
-                cats.add(rate.categoryName);
+                String category = rate.categoryName;
+                if (category.equals("")) {
+                    category = rate.storeName;
+                }
+                rewardCategories.add(category);
             }
         }
 
-        for (RewardCategory rCat : categoryList) {
-            cats.add(rCat.categoryName);
-        }
-
-        List<String> uniqueCats = new ArrayList<>(new HashSet<String>(cats));
+        List<String> uniqueCats = new ArrayList<>(new HashSet<String>(rewardCategories));
         Collections.sort(uniqueCats,String.CASE_INSENSITIVE_ORDER);
 
         Map<String,RewardCategory> rewardCats = new HashMap<>();
@@ -257,7 +220,11 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
 
                 // Now check any rotating categories or special ones
                 for (CategoryRate rate : card.getCategoryRates()) {
-                    if (rate.categoryName.equals(categoryName)) {
+                    String category = rate.categoryName;
+                    if (category.equals("")) {
+                        category = rate.storeName;
+                    }
+                    if (category.equals(categoryName)) {
                         if(rewardCats.get(categoryName) != null) {
                             RewardCategory rCat = rewardCats.get(categoryName);
                             if (rate.rewardRate > rCat.bestRate) {
@@ -278,18 +245,23 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
 
         if (mAdapter == null) {
             mAdapter = new RewardCategoryAdapter(rewardList, getActivity());
+            if (mListView != null) {
+                mListView.setAdapter(mAdapter);
+            }
         } else {
             mAdapter.setRewardCategories(rewardList);
             mAdapter.notifyDataSetChanged();
         }
 
-        Log.d("Reward Cat", "Sending");
-        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/rewardcategories");
-        putDataMapReq.getDataMap().putString(CAT_KEY, gson.toJson(rewardList, categoryListType));
-        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
+//        Log.d("Reward Cat", "Sending");
+//        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/rewardcategories");
+//        Gson gson = new Gson();
+//        Type categoryListType = new TypeToken<ArrayList<RewardCategory>>() {}.getType();
+//        putDataMapReq.getDataMap().putString(CAT_KEY, gson.toJson(rewardList, categoryListType));
+//        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
+//        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
 
-        Log.d("Reward Cat", "Sent");
+//        Log.d("Reward Cat", "Sent");
     }
 
     private static String CAT_KEY = "com.alexwglenn.whichcard.rewardcategories";

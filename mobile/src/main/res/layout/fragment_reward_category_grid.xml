@@ -10,6 +10,9 @@
         android:id="@+id/rewardlist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:verticalSpacing="8dp"
+        android:horizontalSpacing="8dp"
+        android:padding="8dp"
         android:numColumns="2"/>
 
     <TextView

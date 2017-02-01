@@ -117,19 +117,10 @@ public class CardFragment extends Fragment implements AbsListView.OnItemClickLis
                         List<Card> cards = Arrays.asList(response.body());
                         Realm realm = Realm.getDefaultInstance();
                         realm.beginTransaction();
-                        realm.copyToRealm(cards);
+                        realm.copyToRealmOrUpdate(cards);
                         realm.commitTransaction();
                     }
                 });
-    }
-
-    public void onNext(Response<Card[]> response) {
-        Log.d(TAG, "Got a response: " + response.code() + " " + response.body());
-        List<Card> cards = Arrays.asList(response.body());
-        Realm realm = Realm.getDefaultInstance();
-        realm.beginTransaction();
-        realm.copyToRealm(cards);
-        realm.commitTransaction();
     }
 
     @Override

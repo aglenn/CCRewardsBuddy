@@ -274,6 +274,7 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
             float cardRate = (float)cardRateSeek.getProgress() / 4;
 
             addingCard = new Card(cardName.getText().toString(), bankName.getText().toString(), cardRate, rates, currentColor);
+            String colorString = Integer.toHexString(currentColor);
 
             Realm realm = Realm.getDefaultInstance();
             AuthorizeResponse session = realm.where(AuthorizeResponse.class).findFirst();
@@ -307,5 +308,6 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
         realm.beginTransaction();
         realm.copyToRealm(addingCard);
         realm.commitTransaction();
+        dismissAllowingStateLoss();
     }
 }

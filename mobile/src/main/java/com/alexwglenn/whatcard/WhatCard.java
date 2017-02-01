@@ -30,7 +30,10 @@ public class WhatCard extends Application {
 
         mComponent = DaggerWhatCard_WhatCardComponent.builder().whatCardModule(new WhatCardModule()).build();
 
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(this).build();
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(this)
+                .name("whatcard.realm")
+                .schemaVersion(1)
+                .build();
         Realm.setDefaultConfiguration(realmConfig);
 //        mComponent.inject(this);
     }
