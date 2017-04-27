@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file:///Volumes/Sensitive/git/WhatCard-Android/WhatCard-Android.iml" filepath="/Volumes/Sensitive/git/WhatCard-Android/WhatCard-Android.iml" />
       <module fileurl="file:///Volumes/Sensitive/git/WhatCard-Android/mobile/mobile.iml" filepath="/Volumes/Sensitive/git/WhatCard-Android/mobile/mobile.iml" />
-      <module fileurl="file:///Volumes/Sensitive/git/WhatCard-Android/wear/wear.iml" filepath="/Volumes/Sensitive/git/WhatCard-Android/wear/wear.iml" />
     </modules>
   </component>
 </project>

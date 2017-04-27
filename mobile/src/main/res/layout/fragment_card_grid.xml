@@ -6,16 +6,19 @@
              android:layout_height="match_parent"
              tools:context="com.alexwglenn.whatcard.CardFragment">
 
-    <GridView android:id="@+id/cardList"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/cardList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:verticalSpacing="8dp"
         android:horizontalSpacing="8dp"
-        android:padding="8dp"
-        android:numColumns="2" />
+        android:padding="8dp"/>
 
-    <TextView android:id="@android:id/empty" android:layout_width="match_parent"
-        android:layout_height="match_parent" android:gravity="center" />
+    <TextView
+        android:id="@android:id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -24,6 +27,5 @@
         android:layout_gravity="bottom|right"
         android:layout_margin="15dp"
         android:src="@drawable/ic_action_add"/>
-
 
 </FrameLayout>

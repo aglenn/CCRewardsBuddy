@@ -11,14 +11,15 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.alexwglenn.whatcard.model.CategoryAddedEvent;
 import com.alexwglenn.whatcard.model.RewardCategory;
+import com.alexwglenn.whatcard.util.DatabaseManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.squareup.otto.Produce;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+
+import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -27,6 +28,9 @@ import butterknife.InjectView;
  * Created by aglenn on 2/20/15.
  */
 public class AddCategoryFragment extends DialogFragment implements View.OnClickListener {
+
+    @Inject
+    DatabaseManager mDatabaseManager;
 
     @InjectView(R.id.categoryName)
     public EditText categoryName;
@@ -53,21 +57,9 @@ public class AddCategoryFragment extends DialogFragment implements View.OnClickL
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-        }
+        ((WhatCard) getActivity().getApplication()).getComponent().inject(this);
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        BusProvider.getInstance().unregister(this);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        BusProvider.getInstance().register(this);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -93,31 +85,11 @@ public class AddCategoryFragment extends DialogFragment implements View.OnClickL
             dismissAllowingStateLoss();
         }
         else if (v.equals(addCategory)) {
-            RewardCategory rCat = new RewardCategory(categoryName.getText().toString(), 0.0f, null);
+            String category = categoryName.getText().toString();
 
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String categoriesJson = preferences.getString("RewardCategories", "");
-            Gson gson = new Gson();
-
-            Type listType = new TypeToken<ArrayList<RewardCategory>>() {}.getType();
-
-            ArrayList<RewardCategory> categoryList = gson.fromJson(categoriesJson, listType);
-            if (categoryList == null) {
-                categoryList = new ArrayList<>();
-            }
-            categoryList.add(rCat);
-
-            preferences.edit().putString("RewardCategories", gson.toJson(categoryList, listType)).commit();
-
-            BusProvider.getInstance().post(produceCategoryAddedEvent());
+            mDatabaseManager.saveUserCategory(category);
 
             dismissAllowingStateLoss();
-
         }
-    }
-
-    @Produce
-    public CategoryAddedEvent produceCategoryAddedEvent() {
-        return new CategoryAddedEvent();
     }
 }

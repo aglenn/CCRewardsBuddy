@@ -64,4 +64,12 @@ public class AddCategoryRateViewHolder {
     public float getCategoryRate() {
         return categoryRate;
     }
+
+    public String getStartDate() {
+        return startDate.getText().toString();
+    }
+
+    public String getEndDate() {
+        return endDate.getText().toString();
+    }
 }

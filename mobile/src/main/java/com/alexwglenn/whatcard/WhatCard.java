@@ -2,11 +2,11 @@ package com.alexwglenn.whatcard;
 
 import android.app.Application;
 
+import com.alexwglenn.whatcard.util.DatabaseManager;
+
 import javax.inject.Singleton;
 
 import dagger.Component;
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
 
 /**
  * Created by aglenn on 1/20/16.
@@ -16,26 +16,20 @@ public class WhatCard extends Application {
     private WhatCardComponent mComponent;
 
     @Singleton
-    @Component(modules = WhatCardModule.class)
+    @Component(modules={WhatCardModule.class})
     public interface WhatCardComponent {
-        void inject(AddCardFragment addCardFragment);
-        void inject(CardFragment cardFragment);
-        void inject(LoginActivity loginActivity);
+        void inject(DatabaseManager databaseManager);
+        void inject(AddCardFragment fragment);
+        void inject(AddCategoryFragment fragment);
+        void inject(CardFragment fragment);
+        void inject(RewardCategoryFragment fragment);
+        void inject(MainActivity activity);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-
-        mComponent = DaggerWhatCard_WhatCardComponent.builder().whatCardModule(new WhatCardModule()).build();
-
-        RealmConfiguration realmConfig = new RealmConfiguration.Builder(this)
-                .name("whatcard.realm")
-                .schemaVersion(1)
-                .build();
-        Realm.setDefaultConfiguration(realmConfig);
-//        mComponent.inject(this);
+            mComponent = DaggerWhatCard_WhatCardComponent.builder().whatCardModule(new WhatCardModule()).build();
     }
 
     public WhatCardComponent getComponent() {

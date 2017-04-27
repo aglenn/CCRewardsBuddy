@@ -9,7 +9,6 @@
           <set>
             <option value="/Volumes/Sensitive/git/WhatCard-Android" />
             <option value="/Volumes/Sensitive/git/WhatCard-Android/mobile" />
-            <option value="/Volumes/Sensitive/git/WhatCard-Android/wear" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

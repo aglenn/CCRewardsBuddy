@@ -6,14 +6,13 @@
              android:layout_height="match_parent"
              tools:context="com.alexwglenn.whatcard.RewardCategoryFragment">
 
-    <GridView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/rewardlist"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:verticalSpacing="8dp"
         android:horizontalSpacing="8dp"
-        android:padding="8dp"
-        android:numColumns="2"/>
+        android:padding="8dp"/>
 
     <TextView
         android:id="@android:id/empty"

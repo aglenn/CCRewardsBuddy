@@ -1,66 +1,53 @@
 package com.alexwglenn.whatcard;
 
-import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ListAdapter;
-import android.widget.TextView;
-
 
 import com.alexwglenn.whatcard.model.Card;
 import com.alexwglenn.whatcard.model.CategoryRate;
 import com.alexwglenn.whatcard.model.RewardCategory;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
-import com.google.android.gms.wearable.Wearable;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.alexwglenn.whatcard.util.DatabaseManager;
 
-import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import io.realm.Realm;
-import io.realm.RealmResults;
 
-public class RewardCategoryFragment extends Fragment implements AbsListView.OnItemClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    /**
-     * The fragment's ListView/GridView.
-     */
+public class RewardCategoryFragment extends Fragment implements AbsListView.OnItemClickListener, CategoryUpdateListener {
+
+    private static String TAG = "Reward Category Fragment";
+
+    @Inject
+    DatabaseManager mDatabaseManager;
+
     @InjectView(R.id.rewardlist)
-    public AbsListView mListView;
+    public RecyclerView mRecyclerView;
 
     @InjectView(R.id.fab)
     public FloatingActionButton fab;
 
-    private GoogleApiClient mGoogleApiClient;
-
-
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
+    private ArrayList<String> mRewardCategories;
+    private ArrayList<Card> mCards;
     private RewardCategoryAdapter mAdapter;
 
     public static RewardCategoryFragment newInstance() {
@@ -81,24 +68,7 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-        }
-
-        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        Log.d("Reward Cat", "allocating");
-
-        updateRewards();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.d("Reward Cat", "Connecting");
-        mGoogleApiClient.connect();
+        ((WhatCard) getActivity().getApplication()).getComponent().inject(this);
     }
 
     @Override
@@ -108,9 +78,14 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
 
         // Set the adapter
         ButterKnife.inject(this,view);
-        mListView.setAdapter(mAdapter);
 
-        mListView.setOnItemClickListener(this);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+
+        mDatabaseManager.addCategoryUpdateListener(this);
+
+        ArrayList<RewardCategory> rewardList = new ArrayList<>();
+        mAdapter = new RewardCategoryAdapter(rewardList, getActivity());
+        mRecyclerView.setAdapter(mAdapter);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,77 +109,47 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onResume() {
+        super.onResume();
+        mDatabaseManager.addCategoryUpdateListener(this);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        BusProvider.getInstance().unregister(this);
+        mDatabaseManager.removeCategoryUpdateListener(this);
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        BusProvider.getInstance().register(this);
-    }
-
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
     }
 
-    /**
-     * The default content for this Fragment has a TextView that is shown when
-     * the list is empty. If you would like to change the text, call this method
-     * to supply the text it should use.
-     */
-    public void setEmptyText(CharSequence emptyText) {
-        View emptyView = mListView.getEmptyView();
-
-        if (emptyView instanceof TextView) {
-            ((TextView) emptyView).setText(emptyText);
-        }
-    }
-
     private void updateRewards() {
 
-        Realm realm = Realm.getDefaultInstance();
-        RealmResults<Card> cards = realm.where(Card.class).findAll();
+        if (mCards == null || mRewardCategories == null) {
+            return;
+        }
 
-        List<String> rewardCategories = new ArrayList<>();
-
-        rewardCategories.add("Restaurants");
-        rewardCategories.add("Grocery");
-        rewardCategories.add("Clothing");
-        rewardCategories.add("Other");
-
-        for (Card c : cards) {
+        for (Card c : mCards) {
+            if (c.getCategoryRates() == null) {
+                continue;
+            }
             for (CategoryRate rate : c.getCategoryRates()) {
-                String category = rate.categoryName;
+                String category = rate.getCategoryName();
                 if (category.equals("")) {
-                    category = rate.storeName;
+                    category = rate.getStoreName();
                 }
-                rewardCategories.add(category);
+                mRewardCategories.add(category);
             }
         }
 
-        List<String> uniqueCats = new ArrayList<>(new HashSet<String>(rewardCategories));
+        List<String> uniqueCats = new ArrayList<>(new HashSet<String>(mRewardCategories));
         Collections.sort(uniqueCats,String.CASE_INSENSITIVE_ORDER);
 
         Map<String,RewardCategory> rewardCats = new HashMap<>();
         for (String categoryName : uniqueCats) {
-            for (Card card : cards) {
-                if (card.getColor() == Color.BLACK) {
-                    card.setColor(getResources().getColor(R.color.light_grey));
-                }
+            for (Card card : mCards) {
                 // check the base rate of the card first
                 if(rewardCats.get(categoryName) != null) {
                     RewardCategory rCat = rewardCats.get(categoryName);
@@ -218,22 +163,51 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
                     rewardCats.put(categoryName, rCat);
                 }
 
+                if (card.getCategoryRates() == null) {
+                    continue;
+                }
+
                 // Now check any rotating categories or special ones
                 for (CategoryRate rate : card.getCategoryRates()) {
-                    String category = rate.categoryName;
+
+                    boolean inRange = false;
+                    if (rate.getStartDate().equals("") && rate.getEndDate().equals("")) { // always valid
+                        inRange = true;
+                    } else {
+                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                        // check if these are even valid right now
+                        try {
+                            Date startDate = format.parse(rate.getStartDate());
+                            Date endDate = format.parse(rate.getEndDate());
+                            Date now = new Date();
+
+                            if (now.after(startDate) && now.before(endDate)) {
+                                inRange = true;
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (!inRange) {
+                        continue;
+                    }
+
+                    String category = rate.getCategoryName();
                     if (category.equals("")) {
-                        category = rate.storeName;
+                        category = rate.getStoreName();
                     }
                     if (category.equals(categoryName)) {
                         if(rewardCats.get(categoryName) != null) {
                             RewardCategory rCat = rewardCats.get(categoryName);
-                            if (rate.rewardRate > rCat.bestRate) {
+                            if (rate.getRewardRate() > rCat.bestRate) {
                                 rCat.bestCard = card;
-                                rCat.bestRate = rate.rewardRate;
+                                rCat.bestRate = rate.getRewardRate();
                                 rewardCats.put(categoryName, rCat);
                             }
                         } else {
-                            RewardCategory rCat = new RewardCategory(categoryName, rate.rewardRate, card);
+                            RewardCategory rCat = new RewardCategory(categoryName, rate.getRewardRate(), card);
                             rewardCats.put(categoryName, rCat);
                         }
                     }
@@ -242,43 +216,20 @@ public class RewardCategoryFragment extends Fragment implements AbsListView.OnIt
         }
 
         ArrayList<RewardCategory> rewardList = new ArrayList<>(rewardCats.values());
-
-        if (mAdapter == null) {
-            mAdapter = new RewardCategoryAdapter(rewardList, getActivity());
-            if (mListView != null) {
-                mListView.setAdapter(mAdapter);
-            }
-        } else {
-            mAdapter.setRewardCategories(rewardList);
-            mAdapter.notifyDataSetChanged();
-        }
-
-//        Log.d("Reward Cat", "Sending");
-//        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/rewardcategories");
-//        Gson gson = new Gson();
-//        Type categoryListType = new TypeToken<ArrayList<RewardCategory>>() {}.getType();
-//        putDataMapReq.getDataMap().putString(CAT_KEY, gson.toJson(rewardList, categoryListType));
-//        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-//        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
-
-//        Log.d("Reward Cat", "Sent");
+        mAdapter.setRewardCategories(rewardList);
+        mAdapter.notifyDataSetChanged();
     }
 
-    private static String CAT_KEY = "com.alexwglenn.whichcard.rewardcategories";
 
     @Override
-    public void onConnected(Bundle bundle) {
-        Log.d("Reward Cat", "Connected");
+    public void categoriesUpdated(ArrayList<String> categories) {
+        mRewardCategories = categories;
         updateRewards();
     }
 
     @Override
-    public void onConnectionSuspended(int i) {
-        Log.d("Reward Cat", "connection suspended");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.d("Reward Cat", "connection failed");
+    public void userCardsUpdated(ArrayList<Card> cards) {
+        mCards = cards;
+        updateRewards();
     }
 }

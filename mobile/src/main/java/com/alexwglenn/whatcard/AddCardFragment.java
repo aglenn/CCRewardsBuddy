@@ -14,31 +14,25 @@ import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.alexwglenn.whatcard.model.AddCardResponse;
-import com.alexwglenn.whatcard.model.AuthorizeResponse;
 import com.alexwglenn.whatcard.model.Card;
 import com.alexwglenn.whatcard.model.CategoryRate;
+import com.alexwglenn.whatcard.util.DatabaseManager;
 import com.alexwglenn.whatcard.viewholders.AddCategoryRateViewHolder;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import io.realm.Realm;
-import io.realm.RealmList;
-import retrofit2.Response;
-import rx.Observer;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
-public class AddCardFragment extends DialogFragment implements View.OnClickListener, Observer<Response<AddCardResponse>> {
+public class AddCardFragment extends DialogFragment implements View.OnClickListener {
 
     static final String TAG = "AddCardFragment";
 
     @Inject
-    ThisCardService thisCardService;
+    DatabaseManager mDatabaseManager;
 
     @InjectView(R.id.scroll)
     public ScrollView scroll;
@@ -91,25 +85,6 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-        }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        BusProvider.getInstance().unregister(this);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        BusProvider.getInstance().register(this);
-    }
-
-    @Override
     public void onStart()
     {
         super.onStart();
@@ -125,8 +100,7 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-//        getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+
         View v = inflater.inflate(R.layout.fragment_add_card, container, false);
 
         ((WhatCard)getActivity().getApplication()).getComponent().inject(this);
@@ -199,22 +173,22 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
     @Override
     public void onClick(View v) {
         if (v.equals(blueButton)) {
-            currentColor = getResources().getColor(R.color.light_blue);
+            currentColor = getResources().getColor(R.color.light_blue, null);
             selectButton(blueButton);
         } else if (v.equals(purpleButton)) {
-            currentColor = getResources().getColor(R.color.light_purple);
+            currentColor = getResources().getColor(R.color.light_purple, null);
             selectButton(purpleButton);
         } else if (v.equals(greenButton)) {
-            currentColor = getResources().getColor(R.color.light_green);
+            currentColor = getResources().getColor(R.color.light_green, null);
             selectButton(greenButton);
         } else if (v.equals(orangeButton)) {
-            currentColor = getResources().getColor(R.color.light_orange);
+            currentColor = getResources().getColor(R.color.light_orange, null);
             selectButton(orangeButton);
         } else if (v.equals(redButton)) {
-            currentColor = getResources().getColor(R.color.light_red);
+            currentColor = getResources().getColor(R.color.light_red, null);
             selectButton(redButton);
         } else if (v.equals(greyButton)) {
-            currentColor = getResources().getColor(R.color.light_grey);
+            currentColor = getResources().getColor(R.color.light_grey, null);
             selectButton(greyButton);
         } else if (v.equals(addAnother)) {
             View newView = mInflater.inflate(R.layout.add_category_rate_sublayout, null);
@@ -228,15 +202,15 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
             for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
                 AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
 
-                if (lastPercentage != 0) {
+                if (lastPercentage == 0) {
                     viewHolder.setCategoryRate(lastPercentage);
                 }
 
-                if (lastStartDate != "") {
+                if (lastStartDate == "") {
                     viewHolder.startDate.setText(lastStartDate);
                 }
 
-                if (lastEndDate != "") {
+                if (lastEndDate == "") {
                     viewHolder.endDate.setText(lastEndDate);
                 }
 
@@ -249,7 +223,7 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
             }
 
         } else if(v.equals(addCard)) {
-            RealmList<CategoryRate> rates = new RealmList<CategoryRate>();
+            ArrayList<CategoryRate> rates = new ArrayList<CategoryRate>();
 
             for (int index = 0; index < categoryLayout.getChildCount() - 1; index++) {
                 AddCategoryRateViewHolder viewHolder = new AddCategoryRateViewHolder(categoryLayout.getChildAt(index));
@@ -266,48 +240,21 @@ public class AddCardFragment extends DialogFragment implements View.OnClickListe
                         category = categoryOrStore;
                     }
 
-                    CategoryRate cRate = new CategoryRate(store, category, viewHolder.getCategoryRate(), new Date(), new Date());
+                    CategoryRate cRate = new CategoryRate(store, category, viewHolder.getCategoryRate(), viewHolder.getStartDate(), viewHolder.getEndDate());
                     rates.add(cRate);
                 }
             }
 
             float cardRate = (float)cardRateSeek.getProgress() / 4;
 
-            addingCard = new Card(cardName.getText().toString(), bankName.getText().toString(), cardRate, rates, currentColor);
-            String colorString = Integer.toHexString(currentColor);
+            addingCard = new Card(cardName.getText().toString(), bankName.getText().toString(), cardRate, rates, "#" + Integer.toHexString(currentColor));
 
-            Realm realm = Realm.getDefaultInstance();
-            AuthorizeResponse session = realm.where(AuthorizeResponse.class).findFirst();
-
-            thisCardService.addUserCard(session.userID, addingCard, session.sessionKey)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeOn(Schedulers.newThread())
-                    .subscribe(this);
-
+            mDatabaseManager.saveCard(addingCard);
+            dismissAllowingStateLoss();
 
 
         } else if(v.equals(cancel)) {
             dismissAllowingStateLoss();
         }
-    }
-
-    @Override
-    public void onCompleted() {
-
-    }
-
-    @Override
-    public void onError(Throwable e) {
-
-    }
-
-    @Override
-    public void onNext(Response<AddCardResponse> addCardResponseResponse) {
-        addingCard.setId(addCardResponseResponse.body().cardID);
-        Realm realm = Realm.getDefaultInstance();
-        realm.beginTransaction();
-        realm.copyToRealm(addingCard);
-        realm.commitTransaction();
-        dismissAllowingStateLoss();
     }
 }

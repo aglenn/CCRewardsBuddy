@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1044792778674",
+    "firebase_url": "https://whatcard-c8df4.firebaseio.com",
+    "project_id": "whatcard-c8df4",
+    "storage_bucket": "whatcard-c8df4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1044792778674:android:ef13b7f2a8f27af8",
+        "android_client_info": {
+          "package_name": "com.alexwglenn.whatcard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1044792778674-8pdu9q9hh5mgaptl43s5m67a4l5rkj08.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alexwglenn.whatcard",
+            "certificate_hash": "250a9a61aa669350cf24252f98eef647347a3038"
+          }
+        },
+        {
+          "client_id": "1044792778674-s2kbfgtad83fcmlmng5mof6kpnpg7e97.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6knPOUCjKlIKlw0YXBeIgCgpZA9cGAqc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1044792778674-s2kbfgtad83fcmlmng5mof6kpnpg7e97.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

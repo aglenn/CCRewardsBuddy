@@ -1,39 +1,38 @@
 package com.alexwglenn.whatcard.model;
 
+import com.google.firebase.database.Exclude;
+import com.google.firebase.database.IgnoreExtraProperties;
+import com.google.firebase.database.PropertyName;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 
-import io.realm.RealmList;
-import io.realm.RealmObject;
-import io.realm.annotations.PrimaryKey;
-
 /**
  * Created by aglenn on 2/19/15.
  */
-public class Card extends RealmObject {
+public class Card {
 
-    @PrimaryKey
-    private int id;
-    private String name;
-    @SerializedName("bank_name")
-    private String bankName;
-    @SerializedName("base_reward_rate")
-    private float basePercentage;
-    @SerializedName("reward_rates")
-    private RealmList<CategoryRate> categoryRates;
-    private int color;
+    String id;
+    @PropertyName("card_name")
+    String name;
+    @PropertyName("bank_name")
+    String bankName;
+    @PropertyName("base_reward_rate")
+    float basePercentage;
+    @PropertyName("reward_rates")
+    ArrayList<CategoryRate> categoryRates;
+    String color;
 
     public Card() {
-        this.id = 0;
+        this.id = "";
         this.name = "";
         this.bankName = "";
         this.basePercentage = 0.0f;
         this.categoryRates = null;
-        this.color = 0;
+        this.color = "#000000";
     }
 
-    public Card(String name, String bankName, float basePercentage, RealmList<CategoryRate> categoryRates, int color) {
+    public Card(String name, String bankName, float basePercentage, ArrayList<CategoryRate> categoryRates, String color) {
         this.name = name;
         this.bankName = bankName;
         this.basePercentage = basePercentage;
@@ -41,7 +40,7 @@ public class Card extends RealmObject {
         this.color = color;
     }
 
-    public Card(int id, String name, String bankName, float basePercentage, RealmList<CategoryRate> categoryRates, int color) {
+    public Card(String id, String name, String bankName, float basePercentage, ArrayList<CategoryRate> categoryRates, String color) {
         this.id = id;
         this.name = name;
         this.bankName = bankName;
@@ -50,14 +49,15 @@ public class Card extends RealmObject {
         this.color = color;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
+    @Exclude
     public String getName() {
         return name;
     }
@@ -66,6 +66,16 @@ public class Card extends RealmObject {
         this.name = name;
     }
 
+    @Exclude
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    @Exclude
     public float getBasePercentage() {
         return basePercentage;
     }
@@ -74,19 +84,21 @@ public class Card extends RealmObject {
         this.basePercentage = basePercentage;
     }
 
-    public RealmList<CategoryRate> getCategoryRates() {
+    @Exclude
+    public ArrayList<CategoryRate> getCategoryRates() {
         return categoryRates;
     }
 
-    public void setCategoryRates(RealmList<CategoryRate> categoryRates) {
+    public void setCategoryRates(ArrayList<CategoryRate> categoryRates) {
         this.categoryRates = categoryRates;
     }
 
-    public int getColor() {
+    @Exclude
+    public String getColor() {
         return color;
     }
 
-    public void setColor(int color) {
+    public void setColor(String color) {
         this.color = color;
     }
 }

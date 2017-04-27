@@ -31,7 +31,7 @@ public class CardDatePicker implements View.OnClickListener, DatePickerDialog.On
 
         String text = targetText.getText().toString();
 
-        String dateFormat = "MM/dd/yyyy";
+        String dateFormat = "yyyy-MM-dd";
         SimpleDateFormat format = new SimpleDateFormat(dateFormat, Locale.US);
 
         try {
@@ -43,6 +43,7 @@ public class CardDatePicker implements View.OnClickListener, DatePickerDialog.On
 
         } catch (ParseException e) {
             e.printStackTrace();
+            calendar.setTime(new Date());
         }
     }
 
@@ -54,7 +55,7 @@ public class CardDatePicker implements View.OnClickListener, DatePickerDialog.On
 
     @Override
     public void onDateSet(DatePicker datePicker, int year, int month, int day) {
-        String dateFormat = "MM/dd/yyyy";
+        String dateFormat = "yyyy-MM-dd";
         SimpleDateFormat format = new SimpleDateFormat(dateFormat, Locale.US);
 
         calendar.set(Calendar.MONTH, month);
